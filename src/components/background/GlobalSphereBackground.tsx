@@ -1,4 +1,4 @@
-﻿import { Canvas, useFrame } from '@react-three/fiber'
+﻿import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { useControls } from 'leva'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
@@ -50,7 +50,7 @@ function mixColors(
   )
 }
 
-function SpherePoints({
+function RotatingSphere({
   scale,
   pointSize,
   pointCount,
@@ -99,10 +99,14 @@ function SpherePoints({
 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current || !geometryRef.current) return
+
     const dir = rotationDirection === 'clockwise' ? -1 : 1
     groupRef.current.rotation.y += delta * rotationSpeed * dir
 
-    const visibleCount = Math.max(32, Math.min(MAX_SURFACE_POINT_COUNT, Math.floor(pointCount)))
+    const visibleCount = Math.max(
+      32,
+      Math.min(MAX_SURFACE_POINT_COUNT, Math.floor(pointCount))
+    )
     const time = clock.getElapsedTime() * gradientFlowSpeed
 
     for (let i = 0; i < visibleCount; i += 1) {
@@ -119,23 +123,20 @@ function SpherePoints({
       const oceanDim = 0.75
       const landBoost = 1.15
       const intensity = oceanDim + land * (landBoost - oceanDim)
-      const r = Math.min(1, mixed.r * intensity)
-      const g = Math.min(1, mixed.g * intensity)
-      const b = Math.min(1, mixed.b * intensity)
 
       const i3 = i * 3
-      colors[i3] = r
-      colors[i3 + 1] = g
-      colors[i3 + 2] = b
+      colors[i3] = Math.min(1, mixed.r * intensity)
+      colors[i3 + 1] = Math.min(1, mixed.g * intensity)
+      colors[i3 + 2] = Math.min(1, mixed.b * intensity)
     }
 
-    const attr = geometryRef.current.getAttribute('color')
+    const attr = geometryRef.current.getAttribute('color') as THREE.BufferAttribute
     attr.needsUpdate = true
   })
 
   return (
     <group ref={groupRef} scale={scale}>
-      <points>
+      <points renderOrder={1}>
         <bufferGeometry ref={geometryRef}>
           <bufferAttribute
             attach="attributes-position"
@@ -159,10 +160,72 @@ function SpherePoints({
           alphaTest={0.2}
           vertexColors
           opacity={0.9}
-          depthWrite={false}
+          depthTest
+          depthWrite
         />
       </points>
     </group>
+  )
+}
+
+function cleanLogoTexture(texture: THREE.Texture) {
+  const image = texture.image as HTMLImageElement | undefined
+  if (!image) return texture
+
+  const canvas = document.createElement('canvas')
+  canvas.width = image.width
+  canvas.height = image.height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return texture
+
+  ctx.drawImage(image, 0, 0)
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const data = imageData.data
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i]
+    const g = data[i + 1]
+    const b = data[i + 2]
+    if (r < 12 && g < 12 && b < 12) {
+      data[i + 3] = 0
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+  const cleaned = new THREE.CanvasTexture(canvas)
+  cleaned.minFilter = THREE.LinearFilter
+  cleaned.magFilter = THREE.LinearFilter
+  cleaned.generateMipmaps = false
+  return cleaned
+}
+
+function LogoPlane({ scale }: { scale: number }) {
+  const texture = useLoader(THREE.TextureLoader, '/assets/spiski-logo-original.png')
+  const cleanedTexture = useMemo(() => cleanLogoTexture(texture), [texture])
+
+  useEffect(() => {
+    return () => {
+      cleanedTexture.dispose()
+    }
+  }, [cleanedTexture])
+
+  const image = cleanedTexture.image as HTMLImageElement
+  const aspect = image && image.width ? image.width / image.height : 1
+  const width = scale * aspect
+  const height = scale
+
+  return (
+    <mesh position={[0, 0, 0]} renderOrder={2}>
+      <planeGeometry args={[width, height]} />
+      <meshBasicMaterial
+        map={cleanedTexture}
+        transparent
+        alphaTest={0.1}
+        depthTest
+        depthWrite={false}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
   )
 }
 
@@ -177,6 +240,7 @@ function GlobalSphereBackground() {
     gradientColorB,
     gradientColorC,
     gradientFlowSpeed,
+    logoScale,
   } = useControls('Background Sphere', {
     sphereScale: {
       value: 3.2,
@@ -221,6 +285,12 @@ function GlobalSphereBackground() {
       max: 1,
       step: 0.01,
     },
+    logoScale: {
+      value: 1.4,
+      min: 0.4,
+      max: 2.4,
+      step: 0.05,
+    },
   })
 
   const spriteTexture = useMemo(() => createCircleTexture(128), [])
@@ -237,7 +307,7 @@ function GlobalSphereBackground() {
         camera={{ position: [0, 0, 6], fov: 45 }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
-        <SpherePoints
+        <RotatingSphere
           scale={sphereScale}
           pointSize={surfacePointSize}
           pointCount={surfacePointCount}
@@ -249,6 +319,7 @@ function GlobalSphereBackground() {
           gradientFlowSpeed={gradientFlowSpeed}
           spriteTexture={spriteTexture}
         />
+        <LogoPlane scale={logoScale} />
       </Canvas>
     </div>
   )
