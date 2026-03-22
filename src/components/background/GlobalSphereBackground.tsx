@@ -2,11 +2,11 @@
 import { button, useControls } from 'leva'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { buildFibonacciSphere } from './sphereUtils'
+import { getStoredBackgroundSettings, saveLandingSettingsPatch } from '../../lib/uiTheme'
 import { mulberry32 } from './connectionUtils'
+import { buildFibonacciSphere } from './sphereUtils'
 
 const MAX_SURFACE_POINT_COUNT = 6000
-const STORAGE_KEY = 'spiski-background-sphere'
 const MIN_CONNECTION_SUBDIVS = 16
 const MAX_CONNECTION_SUBDIVS = 48
 
@@ -100,12 +100,7 @@ function computeGradientColor(
   )
 }
 
-function slerpUnitVectors(
-  out: THREE.Vector3,
-  start: THREE.Vector3,
-  end: THREE.Vector3,
-  t: number
-) {
+function slerpUnitVectors(out: THREE.Vector3, start: THREE.Vector3, end: THREE.Vector3, t: number) {
   const clampedT = Math.min(1, Math.max(0, t))
   let dot = start.dot(end)
   dot = Math.min(1, Math.max(-1, dot))
@@ -116,22 +111,13 @@ function slerpUnitVectors(
 
   const omega = Math.acos(dot)
   const sinOmega = Math.sin(omega)
-
   const scale0 = Math.sin((1 - clampedT) * omega) / sinOmega
   const scale1 = Math.sin(clampedT * omega) / sinOmega
 
-  return out
-    .copy(start)
-    .multiplyScalar(scale0)
-    .addScaledVector(end, scale1)
-    .normalize()
+  return out.copy(start).multiplyScalar(scale0).addScaledVector(end, scale1).normalize()
 }
 
-function getRandomUnusedIndex(
-  visibleCount: number,
-  used: Set<number>,
-  rand: () => number
-) {
+function getRandomUnusedIndex(visibleCount: number, used: Set<number>, rand: () => number) {
   if (used.size >= visibleCount) {
     return 0
   }
@@ -152,11 +138,7 @@ function getRandomUnusedIndex(
   return 0
 }
 
-function getPointDot(
-  positions: Float32Array,
-  indexA: number,
-  indexB: number
-) {
+function getPointDot(positions: Float32Array, indexA: number, indexB: number) {
   const a3 = indexA * 3
   const b3 = indexB * 3
   return (
@@ -174,10 +156,7 @@ function pickBiasedNextIndex(
   rand: () => number,
   preferLocal: boolean
 ) {
-  const sampleCount = preferLocal
-    ? LOCAL_CANDIDATE_SAMPLES
-    : FAR_CANDIDATE_SAMPLES
-
+  const sampleCount = preferLocal ? LOCAL_CANDIDATE_SAMPLES : FAR_CANDIDATE_SAMPLES
   let bestIndex = -1
   let bestScore = preferLocal ? -Infinity : Infinity
 
@@ -188,19 +167,16 @@ function pickBiasedNextIndex(
     }
 
     const dot = getPointDot(positions, currentIndex, candidate)
+    const score = dot + (rand() - 0.5) * 0.035
 
     if (preferLocal) {
-      const score = dot + (rand() - 0.5) * 0.035
       if (score > bestScore) {
         bestScore = score
         bestIndex = candidate
       }
-    } else {
-      const score = dot + (rand() - 0.5) * 0.035
-      if (score < bestScore) {
-        bestScore = score
-        bestIndex = candidate
-      }
+    } else if (score < bestScore) {
+      bestScore = score
+      bestIndex = candidate
     }
   }
 
@@ -211,12 +187,7 @@ function pickBiasedNextIndex(
   return getRandomUnusedIndex(visibleCount, used, rand)
 }
 
-function buildGroupedRouteIndices(
-  visibleCount: number,
-  depth: number,
-  positions: Float32Array,
-  rand: () => number
-) {
+function buildGroupedRouteIndices(visibleCount: number, depth: number, positions: Float32Array, rand: () => number) {
   const resolvedDepth = Math.max(2, Math.min(5, depth))
   const route = new Uint32Array(resolvedDepth)
   const used = new Set<number>()
@@ -226,16 +197,14 @@ function buildGroupedRouteIndices(
   used.add(current)
 
   for (let step = 1; step < resolvedDepth; step += 1) {
-    const preferLocal = rand() < LOCAL_ROUTE_BIAS
     const nextIndex = pickBiasedNextIndex(
       current,
       visibleCount,
       positions,
       used,
       rand,
-      preferLocal
+      rand() < LOCAL_ROUTE_BIAS
     )
-
     route[step] = nextIndex
     used.add(nextIndex)
     current = nextIndex
@@ -253,8 +222,6 @@ function createRouteState(
   startDistributed = false
 ): RouteState {
   const maxProgress = Math.max(1, depth - 1)
-  const growSpeed = baseSpeed * (0.8 + rand() * 0.55)
-  const shrinkSpeed = baseSpeed * (0.8 + rand() * 0.55)
   const holdDuration = 0.12 + rand() * 0.75
   const cooldownDuration = 0.08 + rand() * 0.6
 
@@ -263,8 +230,8 @@ function createRouteState(
     headProgress: 0,
     tailProgress: 0,
     phase: 'growing',
-    growSpeed,
-    shrinkSpeed,
+    growSpeed: baseSpeed * (0.8 + rand() * 0.55),
+    shrinkSpeed: baseSpeed * (0.8 + rand() * 0.55),
     holdDuration,
     holdTimer: holdDuration,
     cooldownDuration,
@@ -276,18 +243,14 @@ function createRouteState(
   }
 
   const phaseSeed = rand()
-
   if (phaseSeed < 0.5) {
-    state.phase = 'growing'
     state.headProgress = rand() * maxProgress * 0.85
-    state.tailProgress = 0
     return state
   }
 
   if (phaseSeed < 0.68) {
     state.phase = 'holding'
     state.headProgress = maxProgress
-    state.tailProgress = 0
     state.holdTimer = rand() * holdDuration
     return state
   }
@@ -312,15 +275,7 @@ function respawnRoute(
   baseSpeed: number,
   rand: () => number
 ) {
-  const next = createRouteState(
-    visibleCount,
-    depth,
-    positions,
-    baseSpeed,
-    rand,
-    false
-  )
-
+  const next = createRouteState(visibleCount, depth, positions, baseSpeed, rand)
   route.indices = next.indices
   route.headProgress = 0
   route.tailProgress = 0
@@ -360,21 +315,12 @@ function SphereConnections({
   const routesRef = useRef<RouteState[]>([])
   const randRef = useRef<() => number>(() => 0.5)
 
-  const routeCount = Math.min(
-    Math.max(0, Math.floor(visibleCount * connectionRatio)),
-    240
-  )
+  const routeCount = Math.min(Math.max(0, Math.floor(visibleCount * connectionRatio)), 240)
   const depth = Math.max(2, Math.min(5, Math.floor(connectionDepth)))
   const maxSegmentPieces = routeCount * (depth - 1) * MAX_CONNECTION_SUBDIVS
 
-  const linePositions = useMemo(
-    () => new Float32Array(Math.max(1, maxSegmentPieces) * 2 * 3),
-    [maxSegmentPieces]
-  )
-  const lineColors = useMemo(
-    () => new Float32Array(Math.max(1, maxSegmentPieces) * 2 * 3),
-    [maxSegmentPieces]
-  )
+  const linePositions = useMemo(() => new Float32Array(Math.max(1, maxSegmentPieces) * 2 * 3), [maxSegmentPieces])
+  const lineColors = useMemo(() => new Float32Array(Math.max(1, maxSegmentPieces) * 2 * 3), [maxSegmentPieces])
 
   const colorA = useMemo(() => new THREE.Color(gradientColorA), [gradientColorA])
   const colorB = useMemo(() => new THREE.Color(gradientColorB), [gradientColorB])
@@ -391,24 +337,12 @@ function SphereConnections({
       return
     }
 
-    const seed = 4242 + visibleCount * 31 + depth * 131
-    const rand = mulberry32(seed)
+    const rand = mulberry32(4242 + visibleCount * 31 + depth * 131)
     randRef.current = rand
 
-    const routes: RouteState[] = []
-    for (let i = 0; i < routeCount; i += 1) {
-      routes.push(
-        createRouteState(
-          visibleCount,
-          depth,
-          positions,
-          Math.max(0.05, connectionGrowSpeed),
-          rand,
-          true
-        )
-      )
-    }
-    routesRef.current = routes
+    routesRef.current = Array.from({ length: routeCount }, () =>
+      createRouteState(visibleCount, depth, positions, Math.max(0.05, connectionGrowSpeed), rand, true)
+    )
   }, [visibleCount, routeCount, depth, connectionGrowSpeed, positions])
 
   useFrame(({ clock }, delta) => {
@@ -424,36 +358,24 @@ function SphereConnections({
     const maxProgress = depth - 1
     const rand = randRef.current
 
-    for (let i = 0; i < routes.length; i += 1) {
-      const route = routes[i]
-
+    for (const route of routes) {
       switch (route.phase) {
-        case 'growing': {
-          route.headProgress = Math.min(
-            maxProgress,
-            route.headProgress + delta * route.growSpeed
-          )
+        case 'growing':
+          route.headProgress = Math.min(maxProgress, route.headProgress + delta * route.growSpeed)
           if (route.headProgress >= maxProgress) {
             route.headProgress = maxProgress
             route.phase = 'holding'
             route.holdTimer = route.holdDuration
           }
           break
-        }
-
-        case 'holding': {
+        case 'holding':
           route.holdTimer -= delta
           if (route.holdTimer <= 0) {
             route.phase = 'shrinking'
           }
           break
-        }
-
-        case 'shrinking': {
-          route.tailProgress = Math.min(
-            maxProgress,
-            route.tailProgress + delta * route.shrinkSpeed
-          )
+        case 'shrinking':
+          route.tailProgress = Math.min(maxProgress, route.tailProgress + delta * route.shrinkSpeed)
           if (route.tailProgress >= maxProgress) {
             route.phase = 'cooldown'
             route.cooldownTimer = route.cooldownDuration
@@ -461,22 +383,12 @@ function SphereConnections({
             route.tailProgress = 0
           }
           break
-        }
-
-        case 'cooldown': {
+        case 'cooldown':
           route.cooldownTimer -= delta
           if (route.cooldownTimer <= 0) {
-            respawnRoute(
-              route,
-              visibleCount,
-              depth,
-              positions,
-              Math.max(0.05, connectionGrowSpeed),
-              rand
-            )
+            respawnRoute(route, visibleCount, depth, positions, Math.max(0.05, connectionGrowSpeed), rand)
           }
           break
-        }
       }
     }
 
@@ -484,9 +396,7 @@ function SphereConnections({
     let vertexCursor = 0
     let floatCursor = 0
 
-    for (let r = 0; r < routes.length; r += 1) {
-      const route = routes[r]
-
+    for (const route of routes) {
       if (route.phase === 'cooldown') {
         continue
       }
@@ -502,26 +412,15 @@ function SphereConnections({
 
         const idxA = route.indices[s]
         const idxB = route.indices[s + 1]
-
         const a3 = idxA * 3
         const b3 = idxB * 3
 
-        tempStart
-          .set(positions[a3], positions[a3 + 1], positions[a3 + 2])
-          .normalize()
-        tempEnd
-          .set(positions[b3], positions[b3 + 1], positions[b3 + 2])
-          .normalize()
+        tempStart.set(positions[a3], positions[a3 + 1], positions[a3 + 2]).normalize()
+        tempEnd.set(positions[b3], positions[b3 + 1], positions[b3 + 2]).normalize()
 
         const angle = tempStart.angleTo(tempEnd)
-        const adaptiveSubdivs = Math.min(
-          MAX_CONNECTION_SUBDIVS,
-          Math.max(MIN_CONNECTION_SUBDIVS, Math.ceil(angle * 24))
-        )
-        const activeSubdivs = Math.max(
-          1,
-          Math.min(adaptiveSubdivs, Math.ceil(adaptiveSubdivs * visibleSpan))
-        )
+        const adaptiveSubdivs = Math.min(MAX_CONNECTION_SUBDIVS, Math.max(MIN_CONNECTION_SUBDIVS, Math.ceil(angle * 24)))
+        const activeSubdivs = Math.max(1, Math.min(adaptiveSubdivs, Math.ceil(adaptiveSubdivs * visibleSpan)))
 
         for (let j = 0; j < activeSubdivs; j += 1) {
           const t0 = localFrom + (visibleSpan * j) / activeSubdivs
@@ -540,30 +439,12 @@ function SphereConnections({
           const land0 = THREE.MathUtils.lerp(landMask[idxA], landMask[idxB], t0)
           const land1 = THREE.MathUtils.lerp(landMask[idxA], landMask[idxB], t1)
 
-          computeGradientColor(
-            mixed,
-            colorA,
-            colorB,
-            colorC,
-            Math.asin(tempPoint.y),
-            Math.atan2(tempPoint.z, tempPoint.x),
-            time,
-            land0
-          )
+          computeGradientColor(mixed, colorA, colorB, colorC, Math.asin(tempPoint.y), Math.atan2(tempPoint.z, tempPoint.x), time, land0)
           lineColors[floatCursor] = mixed.r
           lineColors[floatCursor + 1] = mixed.g
           lineColors[floatCursor + 2] = mixed.b
 
-          computeGradientColor(
-            mixed,
-            colorA,
-            colorB,
-            colorC,
-            Math.asin(tempPointNext.y),
-            Math.atan2(tempPointNext.z, tempPointNext.x),
-            time,
-            land1
-          )
+          computeGradientColor(mixed, colorA, colorB, colorC, Math.asin(tempPointNext.y), Math.atan2(tempPointNext.z, tempPointNext.x), time, land1)
           lineColors[floatCursor + 3] = mixed.r
           lineColors[floatCursor + 4] = mixed.g
           lineColors[floatCursor + 5] = mixed.b
@@ -575,11 +456,8 @@ function SphereConnections({
     }
 
     geometry.setDrawRange(0, vertexCursor)
-
-    const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute
-    const colorAttr = geometry.getAttribute('color') as THREE.BufferAttribute
-    posAttr.needsUpdate = true
-    colorAttr.needsUpdate = true
+    ;(geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true
+    ;(geometry.getAttribute('color') as THREE.BufferAttribute).needsUpdate = true
   })
 
   if (visibleCount < 2 || routeCount === 0) return null
@@ -587,28 +465,10 @@ function SphereConnections({
   return (
     <lineSegments renderOrder={1}>
       <bufferGeometry ref={geometryRef}>
-        <bufferAttribute
-          attach="attributes-position"
-          array={linePositions}
-          itemSize={3}
-          count={linePositions.length / 3}
-          usage={THREE.DynamicDrawUsage}
-        />
-        <bufferAttribute
-          attach="attributes-color"
-          array={lineColors}
-          itemSize={3}
-          count={lineColors.length / 3}
-          usage={THREE.DynamicDrawUsage}
-        />
+        <bufferAttribute attach="attributes-position" args={[linePositions, 3]} count={linePositions.length / 3} usage={THREE.DynamicDrawUsage} />
+        <bufferAttribute attach="attributes-color" args={[lineColors, 3]} count={lineColors.length / 3} usage={THREE.DynamicDrawUsage} />
       </bufferGeometry>
-      <lineBasicMaterial
-        vertexColors
-        transparent
-        opacity={0.55}
-        depthTest
-        depthWrite={false}
-      />
+      <lineBasicMaterial vertexColors transparent opacity={0.55} depthTest depthWrite={false} />
     </lineSegments>
   )
 }
@@ -645,15 +505,8 @@ function RotatingSphere({
   const groupRef = useRef<THREE.Group>(null)
   const geometryRef = useRef<THREE.BufferGeometry>(null)
 
-  const sphereData = useMemo(
-    () => buildFibonacciSphere(MAX_SURFACE_POINT_COUNT, 1337),
-    []
-  )
-
-  const colors = useMemo(
-    () => new Float32Array(MAX_SURFACE_POINT_COUNT * 3),
-    []
-  )
+  const sphereData = useMemo(() => buildFibonacciSphere(MAX_SURFACE_POINT_COUNT, 1337), [])
+  const colors = useMemo(() => new Float32Array(MAX_SURFACE_POINT_COUNT * 3), [])
 
   const colorA = useMemo(() => new THREE.Color(gradientColorA), [gradientColorA])
   const colorB = useMemo(() => new THREE.Color(gradientColorB), [gradientColorB])
@@ -662,42 +515,26 @@ function RotatingSphere({
 
   useEffect(() => {
     if (!geometryRef.current) return
-    const clamped = Math.max(32, Math.min(MAX_SURFACE_POINT_COUNT, Math.floor(pointCount)))
-    geometryRef.current.setDrawRange(0, clamped)
+    geometryRef.current.setDrawRange(0, Math.max(32, Math.min(MAX_SURFACE_POINT_COUNT, Math.floor(pointCount))))
   }, [pointCount])
 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current || !geometryRef.current) return
 
-    const dir = rotationDirection === 'clockwise' ? -1 : 1
-    groupRef.current.rotation.y += delta * rotationSpeed * dir
+    groupRef.current.rotation.y += delta * rotationSpeed * (rotationDirection === 'clockwise' ? -1 : 1)
 
-    const visibleCount = Math.max(
-      32,
-      Math.min(MAX_SURFACE_POINT_COUNT, Math.floor(pointCount))
-    )
+    const visibleCount = Math.max(32, Math.min(MAX_SURFACE_POINT_COUNT, Math.floor(pointCount)))
     const time = clock.getElapsedTime() * gradientFlowSpeed
 
     for (let i = 0; i < visibleCount; i += 1) {
-      computeGradientColor(
-        mixed,
-        colorA,
-        colorB,
-        colorC,
-        sphereData.latitudes[i],
-        sphereData.longitudes[i],
-        time,
-        sphereData.landMask[i]
-      )
-
+      computeGradientColor(mixed, colorA, colorB, colorC, sphereData.latitudes[i], sphereData.longitudes[i], time, sphereData.landMask[i])
       const i3 = i * 3
       colors[i3] = mixed.r
       colors[i3 + 1] = mixed.g
       colors[i3 + 2] = mixed.b
     }
 
-    const attr = geometryRef.current.getAttribute('color') as THREE.BufferAttribute
-    attr.needsUpdate = true
+    ;(geometryRef.current.getAttribute('color') as THREE.BufferAttribute).needsUpdate = true
   })
 
   const visibleCount = Math.max(32, Math.min(MAX_SURFACE_POINT_COUNT, Math.floor(pointCount)))
@@ -706,33 +543,11 @@ function RotatingSphere({
     <group ref={groupRef} scale={scale}>
       <points renderOrder={1}>
         <bufferGeometry ref={geometryRef}>
-          <bufferAttribute
-            attach="attributes-position"
-            array={sphereData.positions}
-            itemSize={3}
-            count={sphereData.positions.length / 3}
-          />
-          <bufferAttribute
-            attach="attributes-color"
-            array={colors}
-            itemSize={3}
-            count={colors.length / 3}
-            usage={THREE.DynamicDrawUsage}
-          />
+          <bufferAttribute attach="attributes-position" args={[sphereData.positions, 3]} count={sphereData.positions.length / 3} />
+          <bufferAttribute attach="attributes-color" args={[colors, 3]} count={colors.length / 3} usage={THREE.DynamicDrawUsage} />
         </bufferGeometry>
-        <pointsMaterial
-          size={pointSize}
-          map={spriteTexture ?? undefined}
-          alphaMap={spriteTexture ?? undefined}
-          transparent
-          alphaTest={0.2}
-          vertexColors
-          opacity={0.9}
-          depthTest
-          depthWrite
-        />
+        <pointsMaterial size={pointSize} map={spriteTexture ?? undefined} alphaMap={spriteTexture ?? undefined} transparent alphaTest={0.2} vertexColors opacity={0.9} depthTest depthWrite />
       </points>
-
       <SphereConnections
         positions={sphereData.positions}
         landMask={sphereData.landMask}
@@ -764,10 +579,7 @@ function cleanLogoTexture(texture: THREE.Texture) {
   const data = imageData.data
 
   for (let i = 0; i < data.length; i += 4) {
-    const r = data[i]
-    const g = data[i + 1]
-    const b = data[i + 2]
-    if (r < 12 && g < 12 && b < 12) {
+    if (data[i] < 12 && data[i + 1] < 12 && data[i + 2] < 12) {
       data[i + 3] = 0
     }
   }
@@ -784,56 +596,25 @@ function LogoPlane({ scale, sphereScale }: { scale: number; sphereScale: number 
   const texture = useLoader(THREE.TextureLoader, '/assets/spiski-logo-original.png')
   const cleanedTexture = useMemo(() => cleanLogoTexture(texture), [texture])
 
-  useEffect(() => {
-    return () => {
-      cleanedTexture.dispose()
-    }
-  }, [cleanedTexture])
+  useEffect(() => () => cleanedTexture.dispose(), [cleanedTexture])
 
   const image = cleanedTexture.image as HTMLImageElement
   const aspect = image && image.width ? image.width / image.height : 1
-
   const innerRadius = sphereScale * 0.62
-  const maxHeight = ((innerRadius * 2) / Math.sqrt(1 + aspect * aspect)) * 2
+  const maxHeight = (innerRadius * 2) / Math.sqrt(1 + aspect * aspect)
   const height = Math.min(scale, maxHeight)
   const width = height * aspect
 
   return (
     <mesh position={[0, 0, 0]} renderOrder={2}>
       <planeGeometry args={[width, height]} />
-      <meshBasicMaterial
-        map={cleanedTexture}
-        transparent
-        alphaTest={0.1}
-        depthTest
-        depthWrite={false}
-      />
+      <meshBasicMaterial map={cleanedTexture} transparent alphaTest={0.1} depthTest depthWrite={false} />
     </mesh>
   )
 }
 
-function loadSettings() {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    return JSON.parse(raw) as Record<string, unknown>
-  } catch {
-    return null
-  }
-}
-
-function saveSettings(settings: Record<string, unknown>) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
-  } catch {
-    // ignore
-  }
-}
-
 function GlobalSphereBackground() {
-  const stored = useMemo(() => loadSettings() ?? {}, [])
+  const stored = useMemo(() => getStoredBackgroundSettings(), [])
   const controlsRef = useRef<Record<string, unknown>>({})
 
   const {
@@ -851,74 +632,20 @@ function GlobalSphereBackground() {
     connectionDepth,
     connectionGrowSpeed,
   } = useControls('Background Sphere', {
-    sphereScale: {
-      value: (stored.sphereScale as number) ?? 3.2,
-      min: 1,
-      max: 6,
-      step: 0.1,
-    },
-    surfacePointSize: {
-      value: (stored.surfacePointSize as number) ?? 0.03,
-      min: 0.005,
-      max: 0.08,
-      step: 0.005,
-    },
-    surfacePointCount: {
-      value: (stored.surfacePointCount as number) ?? 1600,
-      min: 200,
-      max: 6000,
-      step: 100,
-    },
-    rotationSpeed: {
-      value: (stored.rotationSpeed as number) ?? 0.15,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
-    rotationDirection: {
-      value: (stored.rotationDirection as string) ?? 'counterclockwise',
-      options: ['clockwise', 'counterclockwise'],
-    },
-    gradientColorA: {
-      value: (stored.gradientColorA as string) ?? '#4b7bff',
-    },
-    gradientColorB: {
-      value: (stored.gradientColorB as string) ?? '#8fd3ff',
-    },
-    gradientColorC: {
-      value: (stored.gradientColorC as string) ?? '#5cf2d6',
-    },
-    gradientFlowSpeed: {
-      value: (stored.gradientFlowSpeed as number) ?? 0.15,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
-    logoScale: {
-      value: (stored.logoScale as number) ?? 1.4,
-      min: 0.4,
-      max: 4.8,
-      step: 0.05,
-    },
-    connectionRatio: {
-      value: (stored.connectionRatio as number) ?? 0.06,
-      min: 0,
-      max: 0.25,
-      step: 0.01,
-    },
-    connectionDepth: {
-      value: (stored.connectionDepth as number) ?? 3,
-      options: [2, 3, 4, 5],
-    },
-    connectionGrowSpeed: {
-      value: (stored.connectionGrowSpeed as number) ?? 0.4,
-      min: 0.05,
-      max: 2,
-      step: 0.05,
-    },
-    apply: button(() => {
-      saveSettings(controlsRef.current)
-    }),
+    sphereScale: { value: (stored.sphereScale as number) ?? 3.2, min: 1, max: 6, step: 0.1 },
+    surfacePointSize: { value: (stored.surfacePointSize as number) ?? 0.03, min: 0.005, max: 0.08, step: 0.005 },
+    surfacePointCount: { value: (stored.surfacePointCount as number) ?? 1600, min: 200, max: 6000, step: 100 },
+    rotationSpeed: { value: (stored.rotationSpeed as number) ?? 0.15, min: 0, max: 1, step: 0.01 },
+    rotationDirection: { value: (stored.rotationDirection as string) ?? 'counterclockwise', options: ['clockwise', 'counterclockwise'] },
+    gradientColorA: { value: (stored.gradientColorA as string) ?? '#4b7bff' },
+    gradientColorB: { value: (stored.gradientColorB as string) ?? '#8fd3ff' },
+    gradientColorC: { value: (stored.gradientColorC as string) ?? '#5cf2d6' },
+    gradientFlowSpeed: { value: (stored.gradientFlowSpeed as number) ?? 0.15, min: 0, max: 1, step: 0.01 },
+    logoScale: { value: (stored.logoScale as number) ?? 1.4, min: 0.4, max: 4.4, step: 0.05 },
+    connectionRatio: { value: (stored.connectionRatio as number) ?? 0.06, min: 0, max: 0.25, step: 0.01 },
+    connectionDepth: { value: (stored.connectionDepth as number) ?? 3, options: [2, 3, 4, 5] },
+    connectionGrowSpeed: { value: (stored.connectionGrowSpeed as number) ?? 0.4, min: 0.05, max: 2, step: 0.05 },
+    apply: button(() => saveLandingSettingsPatch({ backgroundSphere: controlsRef.current })),
   })
 
   controlsRef.current = {
@@ -938,25 +665,17 @@ function GlobalSphereBackground() {
   }
 
   const spriteTexture = useMemo(() => createCircleTexture(128), [])
-
-  useEffect(() => {
-    return () => {
-      spriteTexture?.dispose()
-    }
-  }, [spriteTexture])
+  useEffect(() => () => spriteTexture?.dispose(), [spriteTexture])
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none">
-      <Canvas
-        camera={{ position: [0, 0, 6], fov: 45 }}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      >
+      <Canvas camera={{ position: [0, 0, 6], fov: 45 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
         <RotatingSphere
           scale={sphereScale}
           pointSize={surfacePointSize}
           pointCount={surfacePointCount}
           rotationSpeed={rotationSpeed}
-          rotationDirection={rotationDirection}
+          rotationDirection={rotationDirection as 'clockwise' | 'counterclockwise'}
           gradientColorA={gradientColorA}
           gradientColorB={gradientColorB}
           gradientColorC={gradientColorC}
@@ -973,3 +692,4 @@ function GlobalSphereBackground() {
 }
 
 export default GlobalSphereBackground
+
