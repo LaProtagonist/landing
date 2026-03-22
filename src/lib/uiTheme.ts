@@ -42,6 +42,7 @@ export type UIThemeSettings = {
   heroTitleMaxWidth: number
   sectionTitleMaxWidth: number
   cardTitleMaxWidth: number
+  heroTopOffset: number
 }
 
 export const defaultUITheme: UIThemeSettings = {
@@ -70,6 +71,7 @@ export const defaultUITheme: UIThemeSettings = {
   heroTitleMaxWidth: 10,
   sectionTitleMaxWidth: 12,
   cardTitleMaxWidth: 16,
+  heroTopOffset: 136,
 }
 
 type LandingSettings = {
@@ -151,6 +153,7 @@ function mergeUITheme(input?: Partial<UIThemeSettings>): UIThemeSettings {
     heroTitleMaxWidth: clamp(Number(input.heroTitleMaxWidth ?? defaultUITheme.heroTitleMaxWidth), 8, 18),
     sectionTitleMaxWidth: clamp(Number(input.sectionTitleMaxWidth ?? defaultUITheme.sectionTitleMaxWidth), 10, 30),
     cardTitleMaxWidth: clamp(Number(input.cardTitleMaxWidth ?? defaultUITheme.cardTitleMaxWidth), 12, 24),
+    heroTopOffset: clamp(Number(input.heroTopOffset ?? defaultUITheme.heroTopOffset), 0, 220),
   }
 }
 
@@ -236,6 +239,7 @@ export function applyUIThemeToRoot(theme: UIThemeSettings) {
   root.style.setProperty('--hero-title-max-width', String(theme.heroTitleMaxWidth))
   root.style.setProperty('--section-title-max-width', String(theme.sectionTitleMaxWidth))
   root.style.setProperty('--card-title-max-width', String(theme.cardTitleMaxWidth))
+  root.style.setProperty('--hero-top-offset', `${theme.heroTopOffset}px`)
 
   root.style.setProperty('--glass-alpha', String(theme.glassAlpha))
   root.style.setProperty('--glass-blur', `${theme.glassBlur}px`)

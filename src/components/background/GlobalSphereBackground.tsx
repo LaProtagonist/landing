@@ -9,6 +9,7 @@ import { buildFibonacciSphere } from './sphereUtils'
 const MAX_SURFACE_POINT_COUNT = 6000
 const MIN_CONNECTION_SUBDIVS = 16
 const MAX_CONNECTION_SUBDIVS = 48
+const CONNECTION_RADIUS_EPS = 1.003
 
 const LOCAL_ROUTE_BIAS = 0.93
 const LOCAL_CANDIDATE_SAMPLES = 40
@@ -419,8 +420,11 @@ function SphereConnections({
         tempEnd.set(positions[b3], positions[b3 + 1], positions[b3 + 2]).normalize()
 
         const angle = tempStart.angleTo(tempEnd)
-        const adaptiveSubdivs = Math.min(MAX_CONNECTION_SUBDIVS, Math.max(MIN_CONNECTION_SUBDIVS, Math.ceil(angle * 24)))
-        const activeSubdivs = Math.max(1, Math.min(adaptiveSubdivs, Math.ceil(adaptiveSubdivs * visibleSpan)))
+        const adaptiveSubdivs = Math.min(
+          MAX_CONNECTION_SUBDIVS,
+          Math.max(MIN_CONNECTION_SUBDIVS, Math.ceil(angle * 24))
+        )
+        const activeSubdivs = adaptiveSubdivs
 
         for (let j = 0; j < activeSubdivs; j += 1) {
           const t0 = localFrom + (visibleSpan * j) / activeSubdivs
@@ -428,6 +432,8 @@ function SphereConnections({
 
           slerpUnitVectors(tempPoint, tempStart, tempEnd, t0)
           slerpUnitVectors(tempPointNext, tempStart, tempEnd, t1)
+          tempPoint.multiplyScalar(CONNECTION_RADIUS_EPS)
+          tempPointNext.multiplyScalar(CONNECTION_RADIUS_EPS)
 
           linePositions[floatCursor] = tempPoint.x
           linePositions[floatCursor + 1] = tempPoint.y
@@ -463,7 +469,7 @@ function SphereConnections({
   if (visibleCount < 2 || routeCount === 0) return null
 
   return (
-    <lineSegments renderOrder={1}>
+    <lineSegments renderOrder={2}>
       <bufferGeometry ref={geometryRef}>
         <bufferAttribute attach="attributes-position" args={[linePositions, 3]} count={linePositions.length / 3} usage={THREE.DynamicDrawUsage} />
         <bufferAttribute attach="attributes-color" args={[lineColors, 3]} count={lineColors.length / 3} usage={THREE.DynamicDrawUsage} />
@@ -600,15 +606,15 @@ function LogoPlane({ scale, sphereScale }: { scale: number; sphereScale: number 
 
   const image = cleanedTexture.image as HTMLImageElement
   const aspect = image && image.width ? image.width / image.height : 1
-  const innerRadius = sphereScale * 0.62
+  const innerRadius = sphereScale * 0.9
   const maxHeight = (innerRadius * 2) / Math.sqrt(1 + aspect * aspect)
   const height = Math.min(scale, maxHeight)
   const width = height * aspect
 
   return (
-    <mesh position={[0, 0, 0]} renderOrder={2}>
+    <mesh position={[0, 0, 0]} renderOrder={0}>
       <planeGeometry args={[width, height]} />
-      <meshBasicMaterial map={cleanedTexture} transparent alphaTest={0.1} depthTest depthWrite={false} />
+      <meshBasicMaterial map={cleanedTexture} transparent alphaTest={0.1} depthTest depthWrite />
     </mesh>
   )
 }
@@ -641,7 +647,7 @@ function GlobalSphereBackground() {
     gradientColorB: { value: (stored.gradientColorB as string) ?? '#8fd3ff' },
     gradientColorC: { value: (stored.gradientColorC as string) ?? '#5cf2d6' },
     gradientFlowSpeed: { value: (stored.gradientFlowSpeed as number) ?? 0.15, min: 0, max: 1, step: 0.01 },
-    logoScale: { value: (stored.logoScale as number) ?? 1.4, min: 0.4, max: 4.4, step: 0.05 },
+    logoScale: { value: (stored.logoScale as number) ?? 1.4, min: 0.4, max: 4.8, step: 0.05 },
     connectionRatio: { value: (stored.connectionRatio as number) ?? 0.06, min: 0, max: 0.25, step: 0.01 },
     connectionDepth: { value: (stored.connectionDepth as number) ?? 3, options: [2, 3, 4, 5] },
     connectionGrowSpeed: { value: (stored.connectionGrowSpeed as number) ?? 0.4, min: 0.05, max: 2, step: 0.05 },

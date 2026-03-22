@@ -43,6 +43,10 @@ function DevThemeControlsPanel() {
     cardTitleMaxWidth: { value: storedTheme.cardTitleMaxWidth, min: 12, max: 24, step: 1 },
   })
 
+  const layout = useControls('UI Theme / Layout', {
+    heroTopOffset: { value: storedTheme.heroTopOffset, min: 0, max: 220, step: 4 },
+  })
+
   const fonts = useControls('UI Theme / Fonts', {
     fontDisplay: { value: storedTheme.fontDisplay, options: ['Space Grotesk', 'Manrope', 'IBM Plex Sans'] },
     fontBody: { value: storedTheme.fontBody, options: ['Inter', 'IBM Plex Sans', 'Manrope'] },
@@ -58,6 +62,7 @@ function DevThemeControlsPanel() {
     ...glass,
     ...buttons,
     ...typography,
+    ...layout,
     fontDisplay: fonts.fontDisplay as UIThemeSettings['fontDisplay'],
     fontBody: fonts.fontBody as UIThemeSettings['fontBody'],
   }

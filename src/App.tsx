@@ -28,7 +28,7 @@ const valueCards = [
   },
   {
     title: 'Контроль данных',
-    text: 'Организатор сохраняет управление аудиторией, каналами и аналитикой запуска.',
+    text: 'Организатор сохраняет управление накопленной аудиторией, каналами и аналитикой запуска.',
   },
 ]
 
@@ -66,9 +66,9 @@ const systemCards = [
 ]
 
 const settlementRows = [
-  { label: 'Организатор', value: '58%' },
-  { label: 'Партнёрские каналы', value: '27%' },
-  { label: 'Коммуникационные сервисы', value: '15%' },
+  { label: 'Организатор', value: '77%' },
+  { label: 'Партнёрские каналы', value: '20%' },
+  { label: 'Эквайринг', value: '3%' },
 ]
 
 const distributionCards = [
@@ -80,23 +80,58 @@ const distributionCards = [
 
 const pricingCards = [
   {
-    name: 'Studio',
-    text: 'Для камерных запусков и первых партнёрских сценариев.',
-    features: ['Базовая инфраструктура события', 'Простые партнёрские механики', 'Базовые отчёты'],
+    name: 'Community',
+    text: 'Для бесплатных событий, первых запусков и тестирования механик роста аудитории.',
+    price: 'Бесплатно',
+    features: [
+      'Базовый интерфейс Spi.Ski',
+      'Вход через mainSpi.Ski',
+      'Страница события с регистрацие',
+      'Страница события с регистрацией',
+      'Метрики аудитории и привлечения',
+      'Партнёрские и реферальные механики',
+      'Готовые посты и сторис',
+      'Открытые и закрытые события',
+      'Списки приглашённых',
+      'Сканер билетов и check-in',
+      'Роли организатора и сканера',
+    ],
   },
   {
-    name: 'Pro',
-    text: 'Для регулярных запусков и растущей сети партнёров.',
-    features: ['Сегменты и сценарии аудитории', 'Автоматизация взаиморасчётов', 'Персональные офферы и маршруты'],
+     name: 'Enterprise',
+    text: 'Для платных событий, брендов и команд, которым нужен собственный контур продаж и управления.',
+    pricePrimary: '10 000 ₽ / месяц',
+    priceSecondary: '100 000 ₽ / год',
+    note: 'Специальные условия запуска: 5 000 ₽ / месяц · 50 000 ₽ / год',
+    features: [
+      'Всё из тарифа Community',
+      'Брендированный интерфейс',
+      'Вход через вашего Telegram-бота',
+      'Кабинет организатора и промоутера',
+      'Подключение платёжной системы',
+      'Маршрутизация платежей и выплат',
+      'Управление сервисным сбором',
+      'Расширенная аналитика продаж',
+      'Роли: организатор, промоутер, сканер',
+    ],
     accent: true,
   },
   {
-    name: 'Enterprise',
-    text: 'Для системной event-инфраструктуры и сложных сетевых моделей.',
-    features: ['API и интеграции', 'Роли и сложные процессы', 'Выделенный контур поддержки'],
+    name: 'Entertainment',
+    text: 'Для сетевых организаторов, продюсерских команд, клубных систем и сложных event-процессов.',
+    price: 'Стоимость индивидуально',
+    features: [
+      'Всё из предыдущих тарифов',
+      'Кастомный интерфейс',
+      'Дополнительные API и интеграции',
+      'Сложные роли и права доступа',
+      'Выделенный контур поддержки',
+      'Кастомная логика продаж и инвайтов',
+      'Бизнес-процессы под вашу команду',
+      'Архитектура под сеть событий и площадок',
+    ],
   },
 ]
-
 type SectionHeaderProps = {
   eyebrow?: string
   title: string
@@ -107,9 +142,9 @@ type SectionHeaderProps = {
 function SectionHeader({ eyebrow, title, lead, compact = false }: SectionHeaderProps) {
   return (
     <div className={`section-header ${compact ? 'section-header-compact' : ''}`.trim()}>
-      {eyebrow ? <p className="section-eyebrow">{eyebrow}</p> : null}
-      <h2 className="section-title">{title}</h2>
-      <p className="section-lead">{lead}</p>
+      {eyebrow ? <p className="section-eyebrow text-on-bg-stroke">{eyebrow}</p> : null}
+      <h2 className="section-title text-on-bg-stroke">{title}</h2>
+      <p className="section-lead text-on-bg-stroke">{lead}</p>
     </div>
   )
 }
@@ -120,6 +155,17 @@ function ActionLink({ href, children, variant = 'primary' }: { href: string; chi
 
 function GlassCard({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`glass-card ${className}`.trim()}>{children}</div>
+}
+
+function TelegramIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="telegram-icon">
+      <path
+        fill="currentColor"
+        d="M19.8 4.2a1.2 1.2 0 0 0-1.23-.15L4.18 10.4c-.53.23-.5 1 .05 1.19l3.61 1.15 1.4 4.37c.17.52.84.63 1.16.18l2.02-2.84 3.96 2.92c.48.35 1.16.08 1.27-.5l2.53-11.6c.09-.4-.1-.81-.48-1.05Zm-9.23 8.11-.55 4.08-.87-2.71 8.05-6.84-6.63 5.47Z"
+      />
+    </svg>
+  )
 }
 
 function TopNav() {
@@ -186,9 +232,9 @@ function App() {
           <section className="section hero-section" id="hero">
             <div className="container hero-grid">
               <div className="hero-copy">
-                <p className="section-eyebrow">Платформа для премиальных событий</p>
+                <p className="section-eyebrow">Экосистема для продвижения событий</p>
                 <h1 className="hero-title">Персональное приложение для событий и собственной аудитории</h1>
-                <p className="hero-lead">
+                <p className="hero-lead text-on-bg-stroke">
                   Одна платформа для запуска событий, распределения выручки, управления приглашениями и роста доверительных рекомендаций.
                 </p>
                 <div className="hero-actions">
@@ -311,8 +357,8 @@ function App() {
             <div className="container section-stack">
               <SectionHeader
                 eyebrow="Тарифы"
-                title="Ценностные уровни под масштаб и сложность запуска"
-                lead="От первых совместных событий до системной event-инфраструктуры — без искусственных price chips и фальшивых акцентов."
+                title="Уровни подключения под масштаб проекта"
+                lead="От первых совместных событий до системной event-инфраструктуры — по мере роста задач, команды и операционной сложности."
               />
               <div className="feature-grid feature-grid-3 pricing-grid">
                 {pricingCards.map((item) => (
@@ -320,6 +366,14 @@ function App() {
                     <div className="pricing-head">
                       <h3>{item.name}</h3>
                       <p className="pricing-copy">{item.text}</p>
+                      {'price' in item ? <p className="pricing-copy">{item.price}</p> : null}
+                      {'pricePrimary' in item ? (
+                        <>
+                          <p className="pricing-copy">{item.pricePrimary}</p>
+                          <p className="pricing-copy">{item.priceSecondary}</p>
+                          <p className="pricing-copy">{item.note}</p>
+                        </>
+                      ) : null}
                     </div>
                     <ul className="pricing-list">
                       {item.features.map((feature) => (
@@ -332,35 +386,45 @@ function App() {
             </div>
           </section>
 
-          <section className="section section-cta" id="final-cta">
+                    <section className="section section-cta" id="final-cta">
             <div className="container">
               <GlassCard className="final-cta-band">
-                <div>
+                <div className="final-cta-copy">
                   <p className="section-eyebrow">Финальный контур</p>
-                  <h2 className="section-title">Готовы вывести события на новый масштаб?</h2>
+                  <h2 className="section-title">Готовы работать в своем приложении?</h2>
                   <p className="section-lead">
-                    Оставьте заявку — мы соберём архитектуру запуска и покажем, как Spiski усилит ваш следующий проект.
+                    Мы покажем, как будет выглядеть ваше собственное приложение, витрина событий и контур работы с накопленной аудиторией.
                   </p>
                 </div>
-                <div className="hero-actions">
-                  <ActionLink href="mailto:hello@spiski.app">Запросить консультацию</ActionLink>
-                  <ActionLink href="#pricing" variant="secondary">Скачать кейсы</ActionLink>
+                <div className="hero-actions final-cta-actions">
+                  <ActionLink href="https://t.me/spiski_support">Подключение</ActionLink>
+                  <ActionLink href="#hero" variant="secondary">Демо</ActionLink>
                 </div>
               </GlassCard>
             </div>
           </section>
         </main>
 
-        <footer className="site-footer">
+                        <footer className="site-footer">
           <div className="container footer-grid">
-            <div>
-              <p className="footer-brand">Spiski</p>
-              <p className="footer-copy">Платформа для премиальных событий и партнёрских запусков.</p>
-            </div>
+            <p className="footer-copy">
+              Платформа для организаторов, собственной аудитории и премиальных запусков.
+            </p>
             <div className="footer-meta">
-              <a href="mailto:hello@spiski.app">hello@spiski.app</a>
-              <span>Москва · Дубай · Берлин</span>
+              <a
+                className="footer-telegram"
+                href="https://t.me/spiski_support"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <TelegramIcon />
+                <span>@spiski_support</span>
+              </a>
             </div>
+          </div>
+
+          <div className="container footer-bottom">
+            <span>Spi.Ski © 2025–2026</span>
           </div>
         </footer>
       </div>
