@@ -22,6 +22,7 @@
   --section-title-max-width: 12;
   --card-title-max-width: 16;
   --hero-top-offset: 136px;
+  --phone-image-scale: 1.1;
   --glass-alpha: 0.12;
   --glass-blur: 24px;
   --glass-radius: 24px;
@@ -355,13 +356,17 @@ img {
 }
 
 .phone-shell {
-  width: min(100%, 360px);
-  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
   border-radius: 36px;
   background: rgba(7, 12, 22, 0.14);
 }
 
 .phone-frame {
+  position: relative;
   padding: 12px;
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(11, 18, 31, 0.95), rgba(5, 9, 18, 0.94));
@@ -369,9 +374,13 @@ img {
 }
 
 .phone-notch {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 3;
   width: 90px;
   height: 7px;
-  margin: 2px auto 10px;
+  transform: translateX(-50%);
   border-radius: 999px;
   background: rgba(152, 168, 194, 0.26);
 }
@@ -379,109 +388,23 @@ img {
 .phone-screen {
   position: relative;
   overflow: hidden;
+  height: 560px;
   min-height: 560px;
-  border-radius: 22px;
-  padding: 16px;
-  background:
-    radial-gradient(circle at top right, rgba(103, 164, 255, 0.16), transparent 26%),
-    linear-gradient(180deg, rgba(10, 17, 31, 0.96), rgba(6, 11, 21, 0.98));
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 36px;
+  padding: 0;
+  background: #050913;
   box-shadow: inset 0 0 0 1px rgba(219, 231, 247, 0.05);
 }
 
-.phone-screen-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.phone-screen-label,
-.phone-screen-tag,
-.process-step {
-  color: var(--text-muted-color);
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.phone-screen-tag {
-  opacity: 0.75;
-}
-
-.phone-video-slot {
-  display: grid;
-  place-items: center;
-  gap: 12px;
-  height: 326px;
-  margin-top: 14px;
-  border-radius: 20px;
-  background: linear-gradient(160deg, rgba(13, 24, 42, 0.92), rgba(8, 15, 28, 0.94));
-  box-shadow: inset 0 0 0 1px rgba(226, 240, 255, 0.05);
-}
-
-.phone-video-label {
-  color: var(--text-secondary-color);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  letter-spacing: -0.03em;
-}
-
-.phone-video-frame {
-  width: 72%;
-  height: 160px;
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at center, rgba(126, 181, 255, 0.18), transparent 64%),
-    rgba(255, 255, 255, 0.02);
-  box-shadow: inset 0 0 0 1px rgba(224, 239, 255, 0.06);
-}
-
-.phone-ui-stack {
-  display: grid;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.phone-ui-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-}
-
-.phone-ui-card-primary {
-  min-height: 86px;
-}
-
-.phone-ui-card strong,
-.settlement-row strong,
-.settlement-accent strong {
-  color: var(--text-secondary-color);
-  font-family: var(--font-display);
-  font-size: 1rem;
-}
-
-.phone-ui-card p,
-.settlement-row span,
-.settlement-accent span,
-.footer-meta,
-.footer-copy {
-  margin: 4px 0 0;
-  color: var(--text-muted-color);
-}
-
-.phone-ui-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.phone-ui-chip {
-  padding: 12px 14px;
-  text-align: center;
-  color: var(--text-primary-color);
-  font-size: 0.88rem;
+.phone-screen-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center top;
 }
 
 .feature-grid-2x2 {
@@ -592,6 +515,97 @@ img {
   gap: 18px;
   min-height: 0;
   align-content: start;
+}
+
+.pricing-card__body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 18px;
+}
+
+.pricing-card__head {
+  display: grid;
+  gap: 12px;
+}
+
+.pricing-card__features {
+  margin: 0;
+}
+
+.pricing-card__price {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  padding: 14px 16px;
+  border-radius: calc(var(--glass-radius) - 10px);
+  border: 1px solid rgba(216, 236, 255, 0.12);
+  background: rgba(240, 247, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(216, 236, 255, 0.08);
+}
+
+.pricing-card__price-main,
+.pricing-card__price-secondary,
+.pricing-card__price-note-label,
+.pricing-card__price-note-value {
+  margin: 0;
+}
+
+.pricing-card__price-main {
+  color: var(--text-secondary-color);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.pricing-card__price-base {
+  display: grid;
+  gap: 4px;
+}
+
+.pricing-card__price-label {
+  color: var(--text-muted-color);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pricing-card__price-base-value {
+  margin: 0;
+  color: color-mix(in srgb, var(--text-primary-color) 72%, transparent);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+
+.pricing-card__price-base-value--striked {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.6px;
+  text-decoration-color: rgba(216, 236, 255, 0.6);
+  text-decoration-skip-ink: none;
+}
+
+.pricing-card__price-note {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(216, 236, 255, 0.08);
+}
+
+.pricing-card__price-note-label {
+  color: var(--text-muted-color);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pricing-card__price-note-value {
+  color: var(--text-primary-color);
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .pricing-card-accent {
@@ -811,10 +825,16 @@ img {
   }
 
   .phone-shell {
-    width: min(100%, 340px);
+    width: fit-content;
+    max-width: 100%;
   }
 
   .phone-screen {
+    height: 520px;
+    min-height: 520px;
+  }
+
+  .phone-screen-image {
     min-height: 520px;
   }
 }

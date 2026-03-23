@@ -49,17 +49,17 @@ const audienceCards = [
 
 const systemCards = [
   {
-    step: '01',
+    step: '1',
     title: 'Конструктор предложения',
     text: 'Настройка цен, пакетов и условий совместных запусков. Оффер собирается под формат события, аудиторию и партнёрскую модель.',
   },
   {
-    step: '02',
+    step: '2',
     title: 'Маршрут аудитории',
-    text: 'Сегментация, триггеры, напоминания и приглашения. Система выстраивает переход от первого интереса к подтверждённому участию.',
+    text: 'Сегментация, триггеры, напоминания и приглашения. Система выстраивает путь от первого интереса к подтверждённому участию.',
   },
   {
-    step: '03',
+    step: '3',
     title: 'Панель расчётов',
     text: 'Прозрачные условия, автоматический клиринг и отчёты. Каждая сторона видит свой результат без ручной сверки.',
   },
@@ -67,7 +67,7 @@ const systemCards = [
 
 const settlementRows = [
   { label: 'Организатор', value: '77%' },
-  { label: 'Партнёрские каналы', value: '20%' },
+  { label: 'Партнёрские выплаты', value: '20%' },
   { label: 'Эквайринг', value: '3%' },
 ]
 
@@ -132,6 +132,27 @@ const pricingCards = [
     ],
   },
 ]
+
+const pricingMetaByName: Record<string, {
+  primary: string
+  secondary?: string
+  noteLabel?: string
+  note?: string
+}> = {
+  Community: {
+    primary: 'Бесплатно',
+  },
+  Enterprise: {
+    primary: '10 000 ₽ / месяц',
+    secondary: '100 000 ₽ / год',
+    noteLabel: 'Специальные условия запуска',
+    note: '5 000 ₽ / месяц · 50 000 ₽ / год',
+  },
+  Entertainment: {
+    primary: 'Стоимость индивидуально',
+  },
+}
+
 type SectionHeaderProps = {
   eyebrow?: string
   title: string
@@ -172,7 +193,7 @@ function TopNav() {
   return (
     <header className="site-nav-wrap">
       <div className="container nav-shell glass-card glass-card-soft">
-        <a className="brand-mark" href="#hero">Spiski</a>
+        <a className="brand-mark" href="#hero">Spi.Ski</a>
         <nav className="site-nav" aria-label="Основная навигация">
           {navItems.map((item) => (
             <a key={item.href} className="nav-link" href={item.href}>{item.label}</a>
@@ -187,30 +208,14 @@ function PhoneMockup() {
   return (
     <div className="phone-stage">
       <div className="phone-shell glass-card glass-card-soft">
-        <div className="phone-frame">
-          <div className="phone-notch" />
-          <div className="phone-screen">
-            <div className="phone-screen-head">
-              <span className="phone-screen-label">Preview</span>
-              <span className="phone-screen-tag">Future video slot</span>
-            </div>
-            <div className="phone-video-slot">
-              <div className="phone-video-label">App preview</div>
-              <div className="phone-video-frame" />
-            </div>
-            <div className="phone-ui-stack">
-              <GlassCard className="phone-ui-card phone-ui-card-primary">
-                <div>
-                  <strong>Launch control</strong>
-                  <p>Audience, partners, settlements</p>
-                </div>
-              </GlassCard>
-              <div className="phone-ui-row">
-                <GlassCard className="phone-ui-chip">Invites</GlassCard>
-                <GlassCard className="phone-ui-chip">Clearing</GlassCard>
-              </div>
-            </div>
-          </div>
+        <div className="phone-notch" />
+        <div className="phone-screen">
+          <img
+            className="phone-screen-image"
+            src="/assets/image_2026-03-23_17-08-49.png"
+            alt="????????? ?????????? Spi.Ski"
+            loading="eager"
+          />
         </div>
       </div>
     </div>
@@ -238,8 +243,8 @@ function App() {
                   Одна платформа для запуска событий, распределения выручки, управления приглашениями и роста доверительных рекомендаций.
                 </p>
                 <div className="hero-actions">
-                  <ActionLink href="#final-cta">Запросить демо</ActionLink>
-                  <ActionLink href="#pricing" variant="secondary">Скачать презентацию</ActionLink>
+                  <ActionLink href="#final-cta">Подключение</ActionLink>
+                  <ActionLink href="#pricing" variant="secondary">Демо</ActionLink>
                 </div>
                 <div className="hero-story-grid">
                   <GlassCard className="hero-story-card">
@@ -339,7 +344,7 @@ function App() {
             <div className="container section-stack section-stack-tight">
               <SectionHeader
                 eyebrow="Инструменты распространения"
-                title="Партнёры, медиа и комьюнити работают в одном канале"
+                title="Партнёры, медиа и комьюнити работают в единой системе"
                 lead="Нужные механики продвижения собраны в аккуратный набор инструментов без лишней тяжести в интерфейсе."
                 compact
               />
@@ -361,27 +366,56 @@ function App() {
                 lead="От первых совместных событий до системной event-инфраструктуры — по мере роста задач, команды и операционной сложности."
               />
               <div className="feature-grid feature-grid-3 pricing-grid">
-                {pricingCards.map((item) => (
-                  <GlassCard key={item.name} className={item.accent ? 'pricing-card pricing-card-accent' : 'pricing-card'}>
-                    <div className="pricing-head">
-                      <h3>{item.name}</h3>
-                      <p className="pricing-copy">{item.text}</p>
-                      {'price' in item ? <p className="pricing-copy">{item.price}</p> : null}
-                      {'pricePrimary' in item ? (
-                        <>
-                          <p className="pricing-copy">{item.pricePrimary}</p>
-                          <p className="pricing-copy">{item.priceSecondary}</p>
-                          <p className="pricing-copy">{item.note}</p>
-                        </>
-                      ) : null}
-                    </div>
-                    <ul className="pricing-list">
-                      {item.features.map((feature) => (
-                        <li key={feature}>{feature}</li>
-                      ))}
-                    </ul>
-                  </GlassCard>
-                ))}
+                {pricingCards.map((item) => {
+                  const priceMeta = pricingMetaByName[item.name as keyof typeof pricingMetaByName]
+
+                  return (
+                    <GlassCard key={item.name} className={item.accent ? 'pricing-card pricing-card-accent' : 'pricing-card'}>
+                      <div className="pricing-card__body">
+                        <div className="pricing-card__head">
+                          <h3>{item.name}</h3>
+                          <p className="pricing-copy">{item.text}</p>
+                        </div>
+                        <ul className="pricing-list pricing-card__features">
+                          {item.features.map((feature) => (
+                            <li key={feature}>{feature}</li>
+                          ))}
+                        </ul>
+                        <div className="pricing-card__price">
+                          {item.name === 'Enterprise' ? (
+                            <>
+                              <div className="pricing-card__price-base">
+                                <div className="pricing-card__price-label">БАЗОВЫЕ УСЛОВИЯ</div>
+                                {priceMeta.secondary ? (
+                                  <div className="pricing-card__price-base-value pricing-card__price-base-value--striked">
+                                    {priceMeta.primary} · {priceMeta.secondary}
+                                  </div>
+                                ) : null}
+                              </div>
+                              {priceMeta.note ? (
+                                <div className="pricing-card__price-note">
+                                  <div className="pricing-card__price-note-label">{priceMeta.noteLabel}</div>
+                                  <div className="pricing-card__price-note-value">{priceMeta.note}</div>
+                                </div>
+                              ) : null}
+                            </>
+                          ) : (
+                            <>
+                              <p className="pricing-card__price-main">{priceMeta.primary}</p>
+                              {priceMeta.secondary ? <p className="pricing-card__price-secondary">{priceMeta.secondary}</p> : null}
+                              {priceMeta.note ? (
+                                <div className="pricing-card__price-note">
+                                  <p className="pricing-card__price-note-label">{priceMeta.noteLabel}</p>
+                                  <p className="pricing-card__price-note-value">{priceMeta.note}</p>
+                                </div>
+                              ) : null}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </GlassCard>
+                  )
+                })}
               </div>
             </div>
           </section>

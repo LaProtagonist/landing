@@ -45,6 +45,7 @@ function DevThemeControlsPanel() {
 
   const layout = useControls('UI Theme / Layout', {
     heroTopOffset: { value: storedTheme.heroTopOffset, min: 0, max: 220, step: 4 },
+    phoneImageScale: { value: storedTheme.phoneImageScale, min: 0.1, max: 1.2, step: 0.01 },
   })
 
   const fonts = useControls('UI Theme / Fonts', {
