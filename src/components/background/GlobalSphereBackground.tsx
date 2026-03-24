@@ -2,7 +2,7 @@
 import { button, useControls } from 'leva'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { getStoredBackgroundSettings, saveLandingSettingsPatch } from '../../lib/uiTheme'
+import { getStoredBackgroundSettings, releaseBackgroundSphere, saveLandingSettingsPatch, type BackgroundSphereSettings } from '../../lib/uiTheme'
 import { mulberry32 } from './connectionUtils'
 import { buildFibonacciSphere } from './sphereUtils'
 
@@ -619,58 +619,23 @@ function LogoPlane({ scale, sphereScale }: { scale: number; sphereScale: number 
   )
 }
 
-function GlobalSphereBackground() {
-  const stored = useMemo(() => getStoredBackgroundSettings(), [])
-  const controlsRef = useRef<Record<string, unknown>>({})
-
-  const {
-    sphereScale,
-    surfacePointSize,
-    surfacePointCount,
-    rotationSpeed,
-    rotationDirection,
-    gradientColorA,
-    gradientColorB,
-    gradientColorC,
-    gradientFlowSpeed,
-    logoScale,
-    connectionRatio,
-    connectionDepth,
-    connectionGrowSpeed,
-  } = useControls('Background Sphere', {
-    sphereScale: { value: (stored.sphereScale as number) ?? 3.2, min: 1, max: 6, step: 0.1 },
-    surfacePointSize: { value: (stored.surfacePointSize as number) ?? 0.03, min: 0.005, max: 0.08, step: 0.005 },
-    surfacePointCount: { value: (stored.surfacePointCount as number) ?? 1600, min: 200, max: 6000, step: 100 },
-    rotationSpeed: { value: (stored.rotationSpeed as number) ?? 0.15, min: 0, max: 1, step: 0.01 },
-    rotationDirection: { value: (stored.rotationDirection as string) ?? 'counterclockwise', options: ['clockwise', 'counterclockwise'] },
-    gradientColorA: { value: (stored.gradientColorA as string) ?? '#4b7bff' },
-    gradientColorB: { value: (stored.gradientColorB as string) ?? '#8fd3ff' },
-    gradientColorC: { value: (stored.gradientColorC as string) ?? '#5cf2d6' },
-    gradientFlowSpeed: { value: (stored.gradientFlowSpeed as number) ?? 0.15, min: 0, max: 1, step: 0.01 },
-    logoScale: { value: (stored.logoScale as number) ?? 1.4, min: 0.4, max: 4.8, step: 0.05 },
-    connectionRatio: { value: (stored.connectionRatio as number) ?? 0.06, min: 0, max: 0.25, step: 0.01 },
-    connectionDepth: { value: (stored.connectionDepth as number) ?? 3, options: [2, 3, 4, 5] },
-    connectionGrowSpeed: { value: (stored.connectionGrowSpeed as number) ?? 0.4, min: 0.05, max: 2, step: 0.05 },
-    apply: button(() => saveLandingSettingsPatch({ backgroundSphere: controlsRef.current })),
-  })
-
-  controlsRef.current = {
-    sphereScale,
-    surfacePointSize,
-    surfacePointCount,
-    rotationSpeed,
-    rotationDirection,
-    gradientColorA,
-    gradientColorB,
-    gradientColorC,
-    gradientFlowSpeed,
-    logoScale,
-    connectionRatio,
-    connectionDepth,
-    connectionGrowSpeed,
-  }
-
+function BackgroundSphereScene({
+  sphereScale,
+  surfacePointSize,
+  surfacePointCount,
+  rotationSpeed,
+  rotationDirection,
+  gradientColorA,
+  gradientColorB,
+  gradientColorC,
+  gradientFlowSpeed,
+  logoScale,
+  connectionRatio,
+  connectionDepth,
+  connectionGrowSpeed,
+}: BackgroundSphereSettings) {
   const spriteTexture = useMemo(() => createCircleTexture(128), [])
+
   useEffect(() => () => spriteTexture?.dispose(), [spriteTexture])
 
   return (
@@ -681,7 +646,7 @@ function GlobalSphereBackground() {
           pointSize={surfacePointSize}
           pointCount={surfacePointCount}
           rotationSpeed={rotationSpeed}
-          rotationDirection={rotationDirection as 'clockwise' | 'counterclockwise'}
+          rotationDirection={rotationDirection}
           gradientColorA={gradientColorA}
           gradientColorB={gradientColorB}
           gradientColorC={gradientColorC}
@@ -697,5 +662,52 @@ function GlobalSphereBackground() {
   )
 }
 
-export default GlobalSphereBackground
+function GlobalSphereBackgroundDev() {
+  const stored = useMemo(() => getStoredBackgroundSettings(), [])
+  const controlsRef = useRef<BackgroundSphereSettings>(stored)
+
+  const controls = useControls('Background Sphere', {
+    sphereScale: { value: stored.sphereScale ?? releaseBackgroundSphere.sphereScale, min: 1, max: 6, step: 0.1 },
+    surfacePointSize: { value: stored.surfacePointSize ?? releaseBackgroundSphere.surfacePointSize, min: 0.005, max: 0.08, step: 0.005 },
+    surfacePointCount: { value: stored.surfacePointCount ?? releaseBackgroundSphere.surfacePointCount, min: 200, max: 6000, step: 100 },
+    rotationSpeed: { value: stored.rotationSpeed ?? releaseBackgroundSphere.rotationSpeed, min: 0, max: 1, step: 0.01 },
+    rotationDirection: { value: stored.rotationDirection ?? releaseBackgroundSphere.rotationDirection, options: ['clockwise', 'counterclockwise'] },
+    gradientColorA: { value: stored.gradientColorA ?? releaseBackgroundSphere.gradientColorA },
+    gradientColorB: { value: stored.gradientColorB ?? releaseBackgroundSphere.gradientColorB },
+    gradientColorC: { value: stored.gradientColorC ?? releaseBackgroundSphere.gradientColorC },
+    gradientFlowSpeed: { value: stored.gradientFlowSpeed ?? releaseBackgroundSphere.gradientFlowSpeed, min: 0, max: 1, step: 0.01 },
+    logoScale: { value: stored.logoScale ?? releaseBackgroundSphere.logoScale, min: 0.4, max: 4.8, step: 0.05 },
+    connectionRatio: { value: stored.connectionRatio ?? releaseBackgroundSphere.connectionRatio, min: 0, max: 0.25, step: 0.01 },
+    connectionDepth: { value: stored.connectionDepth ?? releaseBackgroundSphere.connectionDepth, options: [2, 3, 4, 5] },
+    connectionGrowSpeed: { value: stored.connectionGrowSpeed ?? releaseBackgroundSphere.connectionGrowSpeed, min: 0.05, max: 2, step: 0.05 },
+    apply: button(() => saveLandingSettingsPatch({ backgroundSphere: controlsRef.current })),
+  })
+
+  controlsRef.current = {
+    sphereScale: controls.sphereScale,
+    surfacePointSize: controls.surfacePointSize,
+    surfacePointCount: controls.surfacePointCount,
+    rotationSpeed: controls.rotationSpeed,
+    rotationDirection: controls.rotationDirection as BackgroundSphereSettings['rotationDirection'],
+    gradientColorA: controls.gradientColorA,
+    gradientColorB: controls.gradientColorB,
+    gradientColorC: controls.gradientColorC,
+    gradientFlowSpeed: controls.gradientFlowSpeed,
+    logoScale: controls.logoScale,
+    connectionRatio: controls.connectionRatio,
+    connectionDepth: controls.connectionDepth,
+    connectionGrowSpeed: controls.connectionGrowSpeed,
+  }
+
+  return <BackgroundSphereScene {...controlsRef.current} />
+}
+
+function GlobalSphereBackgroundProd() {
+  const settings = useMemo(() => getStoredBackgroundSettings(), [])
+  return <BackgroundSphereScene {...settings} />
+}
+
+export default function GlobalSphereBackground() {
+  return import.meta.env.DEV ? <GlobalSphereBackgroundDev /> : <GlobalSphereBackgroundProd />
+}
 

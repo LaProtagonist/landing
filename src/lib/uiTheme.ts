@@ -16,6 +16,22 @@ export const bodyFontMap = {
 export type DisplayFontName = keyof typeof displayFontMap
 export type BodyFontName = keyof typeof bodyFontMap
 
+export type BackgroundSphereSettings = {
+  sphereScale: number
+  surfacePointSize: number
+  surfacePointCount: number
+  rotationSpeed: number
+  rotationDirection: 'clockwise' | 'counterclockwise'
+  gradientColorA: string
+  gradientColorB: string
+  gradientColorC: string
+  gradientFlowSpeed: number
+  logoScale: number
+  connectionRatio: number
+  connectionDepth: number
+  connectionGrowSpeed: number
+}
+
 export type UIThemeSettings = {
   glassAlpha: number
   glassBlur: number
@@ -76,8 +92,28 @@ export const defaultUITheme: UIThemeSettings = {
   phoneImageScale: 1.1,
 }
 
+export const releaseUITheme: UIThemeSettings = {
+  ...defaultUITheme,
+}
+
+export const releaseBackgroundSphere: BackgroundSphereSettings = {
+  sphereScale: 3.2,
+  surfacePointSize: 0.03,
+  surfacePointCount: 1600,
+  rotationSpeed: 0.15,
+  rotationDirection: 'counterclockwise',
+  gradientColorA: '#4b7bff',
+  gradientColorB: '#8fd3ff',
+  gradientColorC: '#5cf2d6',
+  gradientFlowSpeed: 0.15,
+  logoScale: 1.4,
+  connectionRatio: 0.06,
+  connectionDepth: 3,
+  connectionGrowSpeed: 0.4,
+}
+
 type LandingSettings = {
-  backgroundSphere?: Record<string, unknown>
+  backgroundSphere?: Partial<BackgroundSphereSettings>
   uiTheme?: Partial<UIThemeSettings>
 }
 
@@ -118,6 +154,24 @@ function toRgba(color: string, alpha: number) {
   }
 
   return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${alpha})`
+}
+
+function mergeBackgroundSphere(input?: Partial<BackgroundSphereSettings>): BackgroundSphereSettings {
+  return {
+    sphereScale: clamp(Number(input?.sphereScale ?? releaseBackgroundSphere.sphereScale), 1, 6),
+    surfacePointSize: clamp(Number(input?.surfacePointSize ?? releaseBackgroundSphere.surfacePointSize), 0.005, 0.08),
+    surfacePointCount: clamp(Number(input?.surfacePointCount ?? releaseBackgroundSphere.surfacePointCount), 200, 6000),
+    rotationSpeed: clamp(Number(input?.rotationSpeed ?? releaseBackgroundSphere.rotationSpeed), 0, 1),
+    rotationDirection: input?.rotationDirection === 'clockwise' ? 'clockwise' : 'counterclockwise',
+    gradientColorA: String(input?.gradientColorA ?? releaseBackgroundSphere.gradientColorA),
+    gradientColorB: String(input?.gradientColorB ?? releaseBackgroundSphere.gradientColorB),
+    gradientColorC: String(input?.gradientColorC ?? releaseBackgroundSphere.gradientColorC),
+    gradientFlowSpeed: clamp(Number(input?.gradientFlowSpeed ?? releaseBackgroundSphere.gradientFlowSpeed), 0, 1),
+    logoScale: clamp(Number(input?.logoScale ?? releaseBackgroundSphere.logoScale), 0.4, 4.8),
+    connectionRatio: clamp(Number(input?.connectionRatio ?? releaseBackgroundSphere.connectionRatio), 0, 0.25),
+    connectionDepth: clamp(Math.round(Number(input?.connectionDepth ?? releaseBackgroundSphere.connectionDepth)), 2, 5),
+    connectionGrowSpeed: clamp(Number(input?.connectionGrowSpeed ?? releaseBackgroundSphere.connectionGrowSpeed), 0.05, 2),
+  }
 }
 
 function mergeUITheme(input?: Partial<UIThemeSettings>): UIThemeSettings {
@@ -162,7 +216,10 @@ function mergeUITheme(input?: Partial<UIThemeSettings>): UIThemeSettings {
 
 export function loadLandingSettings(): LandingSettings {
   if (typeof window === 'undefined') {
-    return { uiTheme: { ...defaultUITheme } }
+    return {
+      backgroundSphere: { ...releaseBackgroundSphere },
+      uiTheme: { ...releaseUITheme },
+    }
   }
 
   try {
@@ -171,7 +228,7 @@ export function loadLandingSettings(): LandingSettings {
       const parsed = JSON.parse(raw)
       if (isObject(parsed)) {
         return {
-          backgroundSphere: isObject(parsed.backgroundSphere) ? parsed.backgroundSphere : undefined,
+          backgroundSphere: mergeBackgroundSphere(isObject(parsed.backgroundSphere) ? (parsed.backgroundSphere as Partial<BackgroundSphereSettings>) : undefined),
           uiTheme: mergeUITheme(isObject(parsed.uiTheme) ? (parsed.uiTheme as Partial<UIThemeSettings>) : undefined),
         }
       }
@@ -186,8 +243,8 @@ export function loadLandingSettings(): LandingSettings {
       const parsed = JSON.parse(legacy)
       if (isObject(parsed)) {
         return {
-          backgroundSphere: parsed,
-          uiTheme: { ...defaultUITheme },
+          backgroundSphere: mergeBackgroundSphere(parsed as Partial<BackgroundSphereSettings>),
+          uiTheme: { ...releaseUITheme },
         }
       }
     }
@@ -196,16 +253,17 @@ export function loadLandingSettings(): LandingSettings {
   }
 
   return {
-    uiTheme: { ...defaultUITheme },
+    backgroundSphere: { ...releaseBackgroundSphere },
+    uiTheme: { ...releaseUITheme },
   }
 }
 
 export function getStoredUITheme() {
-  return mergeUITheme(loadLandingSettings().uiTheme)
+  return mergeUITheme(loadLandingSettings().uiTheme ?? releaseUITheme)
 }
 
 export function getStoredBackgroundSettings() {
-  return loadLandingSettings().backgroundSphere ?? {}
+  return mergeBackgroundSphere(loadLandingSettings().backgroundSphere)
 }
 
 export function saveLandingSettingsPatch(patch: LandingSettings) {

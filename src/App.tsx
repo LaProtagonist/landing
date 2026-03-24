@@ -1,5 +1,5 @@
 ﻿import type { ReactNode } from 'react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import GlobalSphereBackground from './components/background/GlobalSphereBackground'
 import DevPanel from './components/dev/DevPanel'
 import { applyUIThemeToRoot, getStoredUITheme } from './lib/uiTheme'
@@ -86,7 +86,6 @@ const pricingCards = [
     features: [
       'Базовый интерфейс Spi.Ski',
       'Вход через mainSpi.Ski',
-      'Страница события с регистрацие',
       'Страница события с регистрацией',
       'Метрики аудитории и привлечения',
       'Партнёрские и реферальные механики',
@@ -190,15 +189,39 @@ function TelegramIcon() {
 }
 
 function TopNav() {
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
+
   return (
     <header className="site-nav-wrap">
       <div className="container nav-shell glass-card glass-card-soft">
-        <a className="brand-mark" href="#hero">Spi.Ski</a>
-        <nav className="site-nav" aria-label="Основная навигация">
-          {navItems.map((item) => (
-            <a key={item.href} className="nav-link" href={item.href}>{item.label}</a>
-          ))}
-        </nav>
+        <div className="nav-top-row">
+          <a className="brand-mark" href="#hero">Spi.Ski</a>
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-expanded={isMobileNavOpen}
+            aria-label="??????? ????"
+            onClick={() => setIsMobileNavOpen((value) => !value)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
+        <div className={`nav-menu${isMobileNavOpen ? ' is-open' : ''}`}>
+          <nav className="site-nav" aria-label="???????? ?????????">
+            {navItems.map((item) => (
+              <a
+                key={item.href}
+                className="nav-link"
+                href={item.href}
+                onClick={() => setIsMobileNavOpen(false)}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </div>
       </div>
     </header>
   )
