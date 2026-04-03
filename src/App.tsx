@@ -15,53 +15,53 @@ const navItems = [
 
 const valueCards = [
   {
-    title: 'Продажи и продвижение',
-    text: 'Организаторы, партнёры и аудитория работают в одной системе, а не в разрозненных таблицах и чатах.',
+    title: 'Своё приложение',
+    text: 'Организатор получает приложение под свой проект — с событиями, продажами и логикой работы с аудиторией.',
   },
   {
-    title: 'Прозрачные взаиморасчёты',
-    text: 'Правила распределения выручки фиксируются заранее и считаются автоматически.',
+    title: 'Своя база аудитории',
+    text: 'Интерес, регистрации и история переходов остаются внутри проекта и доступны для последующих событий.',
   },
   {
-    title: 'Эффект сети',
-    text: 'Приглашения, рекомендации и повторные касания формируют накопительный рост вокруг каждого события.',
+    title: 'Партнёрское продвижение',
+    text: 'Партнёры, рекомендации, промокоды и реферальные сценарии собраны в одной системе.',
   },
   {
-    title: 'Контроль данных',
-    text: 'Организатор сохраняет управление накопленной аудиторией, каналами и аналитикой запуска.',
+    title: 'Понятная экономика',
+    text: 'Подписка делает расходы предсказуемыми и сохраняет больше выручки по мере роста продаж.',
   },
 ]
 
 const audienceCards = [
   {
-    title: 'Рекомендации',
-    text: 'Доверительные приглашения и микро-амбассадоры усиливают запуск без ощущения массовой рекламы.',
+    title: 'Приглашения и рекомендации',
+    text: 'Аудитория приходит через доверительные приглашения, партнёров и рекомендации, а не только через рекламу.',
   },
   {
-    title: 'Сегменты и ожидание',
-    text: 'Списки ожидания, приоритеты и повторные касания превращают интерес в управляемый спрос.',
+    title: 'Списки ожидания',
+    text: 'Интерес не теряется: система собирает ожидание и возвращает людей в момент запуска.',
   },
   {
-    title: 'Повторная коммуникация',
-    text: 'Запуск не заканчивается продажей: система удерживает внимание и возвращает аудиторию в следующие сценарии.',
+    title: 'Повторные продажи',
+    text: 'После одного события база не обнуляется — с ней можно работать дальше и запускать новые продажи быстрее.',
   },
 ]
 
 const systemCards = [
   {
     step: '1',
-    title: 'Конструктор предложения',
-    text: 'Настройка цен, пакетов и условий совместных запусков. Оффер собирается под формат события, аудиторию и партнёрскую модель.',
+    title: 'Создаёте событие',
+    text: 'Собираете страницу события, настраиваете доступ, билеты, роли и формат запуска под свою задачу.',
   },
   {
     step: '2',
-    title: 'Маршрут аудитории',
-    text: 'Сегментация, триггеры, напоминания и приглашения. Система выстраивает путь от первого интереса к подтверждённому участию.',
+    title: 'Подключаете продвижение',
+    text: 'Запускаете партнёрские и реферальные механики, приглашения, промокоды и каналы распространения.',
   },
   {
     step: '3',
-    title: 'Панель расчётов',
-    text: 'Прозрачные условия, автоматический клиринг и отчёты. Каждая сторона видит свой результат без ручной сверки.',
+    title: 'Получаете продажи и аналитику',
+    text: 'Система считает регистрации, продажи, выплаты и check-in, а команда видит результат по каждому запуску.',
   },
 ]
 
@@ -72,20 +72,20 @@ const settlementRows = [
 ]
 
 const distributionCards = [
-  'Витрины и персональные ссылки',
-  'Партнёрские подписки и промокоды',
-  'Интерактивные списки ожидания',
-  'Аналитика эффективности в реальном времени',
+  'Страницы событий и персональные ссылки',
+  'Партнёрские программы и промокоды',
+  'Списки ожидания и приглашения',
+  'Аналитика по каналам и продажам',
 ]
 
 const pricingCards = [
   {
     name: 'Community',
-    text: 'Для бесплатных событий, первых запусков и тестирования механик роста аудитории.',
+    text: 'Для бесплатных событий, первых запусков и тестирования механик продвижения.',
     price: 'Бесплатно',
     features: [
       'Базовый интерфейс Spi.Ski',
-      'Вход через mainSpi.Ski',
+      'Вход через main Spi.Ski',
       'Страница события с регистрацией',
       'Метрики аудитории и привлечения',
       'Партнёрские и реферальные механики',
@@ -97,18 +97,18 @@ const pricingCards = [
     ],
   },
   {
-     name: 'Enterprise',
-    text: 'Для платных событий, брендов и команд, которым нужен собственный контур продаж и управления.',
+    name: 'Enterprise',
+    text: 'Для платных событий и команд, которым нужно своё приложение с продажами, аудиторией и партнёрской логикой.',
     pricePrimary: '10 000 ₽ / месяц',
     priceSecondary: '100 000 ₽ / год',
     note: 'Специальные условия запуска: 5 000 ₽ / месяц · 50 000 ₽ / год',
     features: [
       'Всё из тарифа Community',
       'Брендированный интерфейс',
-      'Кабинет организатора, промоутера',
-      'Накопление аудитории',
+      'Кабинеты организатора и промоутера',
+      'Накопление собственной аудитории',
       'Подключение платёжной системы',
-      'Маршрутизация платежей и выплат',
+      'Распределение платежей и выплат',
       'Управление сервисным сбором',
       'Расширенная аналитика продаж',
       'Роли: организатор, промоутер, сканер',
@@ -117,13 +117,13 @@ const pricingCards = [
   },
   {
     name: 'Entertainment',
-    text: 'Для сетевых организаторов, продюсерских команд, клубных систем и сложных event-процессов.',
+    text: 'Для сетевых организаторов и проектов со сложными ролями, интеграциями и процессами.',
     price: 'Стоимость индивидуально',
     features: [
       'Всё из предыдущих тарифов',
       'Кастомный интерфейс',
       'Вход через вашего Telegram-бота',
-      'Дополнительные API интеграции',
+      'Дополнительные API и интеграции',
       'Сложные роли и права доступа',
       'Выделенный контур поддержки',
       'Кастомная логика продаж и инвайтов',
@@ -133,12 +133,15 @@ const pricingCards = [
   },
 ]
 
-const pricingMetaByName: Record<string, {
-  primary: string
-  secondary?: string
-  noteLabel?: string
-  note?: string
-}> = {
+const pricingMetaByName: Record<
+  string,
+  {
+    primary: string
+    secondary?: string
+    noteLabel?: string
+    note?: string
+  }
+> = {
   Community: {
     primary: 'Бесплатно',
   },
@@ -163,15 +166,27 @@ type SectionHeaderProps = {
 function SectionHeader({ eyebrow, title, lead, compact = false }: SectionHeaderProps) {
   return (
     <div className={`section-header ${compact ? 'section-header-compact' : ''}`.trim()}>
-      {eyebrow ? <p className="section-eyebrow text-on-bg-stroke">{eyebrow}</p> : null}
-      <h2 className="section-title text-on-bg-stroke">{title}</h2>
-      <p className="section-lead text-on-bg-stroke">{lead}</p>
+      {eyebrow ? <p className="section-eyebrow">{eyebrow}</p> : null}
+      <h2 className="section-title">{title}</h2>
+      <p className="section-lead">{lead}</p>
     </div>
   )
 }
 
-function ActionLink({ href, children, variant = 'primary' }: { href: string; children: ReactNode; variant?: 'primary' | 'secondary' }) {
-  return <a className={`button ${variant === 'primary' ? 'button-primary' : 'button-secondary'}`} href={href}>{children}</a>
+function ActionLink({
+  href,
+  children,
+  variant = 'primary',
+}: {
+  href: string
+  children: ReactNode
+  variant?: 'primary' | 'secondary'
+}) {
+  return (
+    <a className={`button ${variant === 'primary' ? 'button-primary' : 'button-secondary'}`} href={href}>
+      {children}
+    </a>
+  )
 }
 
 function GlassCard({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -196,12 +211,14 @@ function TopNav() {
     <header className="site-nav-wrap">
       <div className="container nav-shell glass-card glass-card-soft">
         <div className="nav-top-row">
-          <a className="brand-mark" href="#hero">Spi.Ski</a>
+          <a className="brand-mark" href="#hero">
+            Spi.Ski
+          </a>
           <button
             type="button"
             className="nav-toggle"
             aria-expanded={isMobileNavOpen}
-            aria-label="??????? ????"
+            aria-label="Открыть меню"
             onClick={() => setIsMobileNavOpen((value) => !value)}
           >
             <span />
@@ -210,7 +227,7 @@ function TopNav() {
           </button>
         </div>
         <div className={`nav-menu${isMobileNavOpen ? ' is-open' : ''}`}>
-          <nav className="site-nav" aria-label="???????? ?????????">
+          <nav className="site-nav" aria-label="Основная навигация">
             {navItems.map((item) => (
               <a
                 key={item.href}
@@ -237,7 +254,7 @@ function PhoneMockup() {
           <img
             className="phone-screen-image"
             src="/assets/image_2026-03-23_17-08-49.png"
-            alt="????????? ?????????? Spi.Ski"
+            alt="Интерфейс приложения Spi.Ski"
             loading="eager"
           />
         </div>
@@ -255,29 +272,35 @@ function App() {
     <div className="app-shell">
       <GlobalSphereBackground />
       <div className="page-overlay" />
-      <div className="site-layer">
+      <div className="site-layer page-text-outline">
         <TopNav />
         <main>
           <section className="section hero-section" id="hero">
             <div className="container hero-grid">
               <div className="hero-copy">
-                <p className="section-eyebrow">Экосистема для продвижения событий</p>
-                <h1 className="hero-title">Персональное приложение для событий и собственной аудитории</h1>
-                <p className="hero-lead text-on-bg-stroke">
-                  Одна платформа для запуска событий, распределения выручки, управления приглашениями и роста доверительных рекомендаций.
+                <p className="section-eyebrow">Приложение для организаторов событий</p>
+                <h1 className="hero-title">Собственное приложение для событий, аудитории и продаж</h1>
+                <p className="hero-lead">
+                  Spi.Ski даёт организатору своё приложение для запуска событий, продаж, приглашений, партнёрских программ и работы с аудиторией — с понятной экономикой по подписке.
                 </p>
                 <div className="hero-actions">
-                  <ActionLink href="#final-cta">Подключение</ActionLink>
-                  <ActionLink href="#pricing" variant="secondary">Демо</ActionLink>
+                  <ActionLink href="#final-cta">Запросить доступ</ActionLink>
+                  <ActionLink href="#pricing" variant="secondary">
+                    Посмотреть тарифы
+                  </ActionLink>
                 </div>
                 <div className="hero-story-grid">
                   <GlassCard className="hero-story-card">
-                    <p className="hero-story-title">Система запуска</p>
-                    <p className="hero-story-text">Сценарии продвижения, партнёрские механики, прозрачные расчёты и единый маршрут аудитории.</p>
+                    <p className="hero-story-title">Своё приложение</p>
+                    <p className="hero-story-text">
+                      Бренд, события, продажи и коммуникация с аудиторией собраны в одном интерфейсе.
+                    </p>
                   </GlassCard>
                   <GlassCard className="hero-story-card">
-                    <p className="hero-story-title">Контур роста</p>
-                    <p className="hero-story-text">Повторные касания, списки ожидания, рекомендации и накопление собственной сети вокруг каждого запуска.</p>
+                    <p className="hero-story-title">Рост от запуска к запуску</p>
+                    <p className="hero-story-text">
+                      Партнёрские механики, рекомендации и повторные касания помогают накапливать аудиторию вокруг проекта.
+                    </p>
                   </GlassCard>
                 </div>
               </div>
@@ -288,9 +311,9 @@ function App() {
           <section className="section section-tight" id="what">
             <div className="container section-stack section-stack-tight">
               <SectionHeader
-                eyebrow="Что такое Spiski"
-                title="Единый контур управления событиями"
-                lead="От формирования аудитории до финальных взаиморасчётов между всеми сторонами — в одной платформе."
+                eyebrow="Что это"
+                title="Платформа, где событие, продажи и продвижение работают как одна система"
+                lead="Организатор получает свой инструмент для запуска событий, работы с аудиторией, продаж и партнёрских сценариев — в одном контуре."
               />
               <div className="feature-grid feature-grid-2x2">
                 {valueCards.map((item) => (
@@ -307,12 +330,15 @@ function App() {
             <div className="container split-layout split-layout-balanced">
               <SectionHeader
                 eyebrow="Как растёт аудитория"
-                title="Доверие и повторные касания собираются в управляемый рост"
-                lead="Spiski усиливает запуск не объёмом шума, а качеством маршрута: рекомендации, ожидание и возвращаемость работают как система."
+                title="Каждый запуск усиливает следующий"
+                lead="Приглашения, ожидание, рекомендации и повторные продажи складываются в устойчивый рост вокруг проекта."
               />
               <div className="feature-stack feature-stack-dense">
                 {audienceCards.map((item) => (
-                  <GlassCard key={item.title} className="feature-card feature-card-rich feature-card-compact">
+                  <GlassCard
+                    key={item.title}
+                    className="feature-card feature-card-rich feature-card-compact"
+                  >
                     <h3 className="feature-card-title">{item.title}</h3>
                     <p className="feature-card-text">{item.text}</p>
                   </GlassCard>
@@ -324,9 +350,9 @@ function App() {
           <section className="section section-tight" id="system">
             <div className="container section-stack section-stack-tight">
               <SectionHeader
-                eyebrow="Как работает система"
-                title="От оффера до пост-коммуникации — единый сценарий запуска"
-                lead="Команда видит предложение, маршрут аудитории и финансовую модель как связанную инфраструктуру, а не набор разрозненных инструментов."
+                eyebrow="Как это работает"
+                title="Запуск, продвижение, продажи и check-in — в одной системе"
+                lead="Команда работает в одном приложении и видит весь путь события целиком: от страницы запуска до результата по продажам."
               />
               <div className="feature-grid feature-grid-3">
                 {systemCards.map((item) => (
@@ -343,9 +369,9 @@ function App() {
           <section className="section section-tight">
             <div className="container split-layout split-layout-tight split-layout-balanced">
               <SectionHeader
-                eyebrow="Расчёты и распределение"
-                title="Операционный блок без ручной сверки"
-                lead="Условия фиксируются заранее, а распределение выручки и аналитика по запуску собираются в один прозрачный рабочий контур."
+                eyebrow="Продажи и выплаты"
+                title="Выручка сразу поступает организатору"
+                lead="Поскольку приложение работает на стороне организатора, деньги с продаж сразу зачисляются на его счёт — за вычетом эквайринга и партнёрских выплат."
               />
               <GlassCard className="settlement-panel">
                 <div className="settlement-list">
@@ -357,7 +383,7 @@ function App() {
                   ))}
                 </div>
                 <GlassCard className="settlement-accent">
-                  <span>Прозрачный клиринг</span>
+                  <span>Автоматический расчёт</span>
                   <strong>24 часа</strong>
                 </GlassCard>
               </GlassCard>
@@ -367,9 +393,9 @@ function App() {
           <section className="section section-tight">
             <div className="container section-stack section-stack-tight">
               <SectionHeader
-                eyebrow="Инструменты распространения"
-                title="Партнёры, медиа и комьюнити работают в единой системе"
-                lead="Нужные механики продвижения собраны в аккуратный набор инструментов без лишней тяжести в интерфейсе."
+                eyebrow="Продвижение"
+                title="Инструменты продвижения уже встроены в систему"
+                lead="Ссылки, партнёрские сценарии, списки ожидания и аналитика помогают продвигать событие без разрозненных инструментов."
                 compact
               />
               <div className="feature-grid feature-grid-2x2 feature-grid-light">
@@ -386,15 +412,18 @@ function App() {
             <div className="container section-stack">
               <SectionHeader
                 eyebrow="Тарифы"
-                title="Уровни подключения под масштаб проекта"
-                lead="От первых совместных событий до системной event-инфраструктуры — по мере роста задач, команды и операционной сложности."
+                title="Тарифы под формат запуска"
+                lead="От первых бесплатных событий до собственного брендированного приложения с продажами, аудиторией и партнёрскими программами."
               />
               <div className="feature-grid feature-grid-3 pricing-grid">
                 {pricingCards.map((item) => {
                   const priceMeta = pricingMetaByName[item.name as keyof typeof pricingMetaByName]
 
                   return (
-                    <GlassCard key={item.name} className={item.accent ? 'pricing-card pricing-card-accent' : 'pricing-card'}>
+                    <GlassCard
+                      key={item.name}
+                      className={item.accent ? 'pricing-card pricing-card-accent' : 'pricing-card'}
+                    >
                       <div className="pricing-card__body">
                         <div className="pricing-card__head">
                           <h3>{item.name}</h3>
@@ -418,18 +447,28 @@ function App() {
                               </div>
                               {priceMeta.note ? (
                                 <div className="pricing-card__price-note">
-                                  <div className="pricing-card__price-note-label">{priceMeta.noteLabel}</div>
-                                  <div className="pricing-card__price-note-value">{priceMeta.note}</div>
+                                  <div className="pricing-card__price-note-label">
+                                    {priceMeta.noteLabel}
+                                  </div>
+                                  <div className="pricing-card__price-note-value">
+                                    {priceMeta.note}
+                                  </div>
                                 </div>
                               ) : null}
                             </>
                           ) : (
                             <>
                               <p className="pricing-card__price-main">{priceMeta.primary}</p>
-                              {priceMeta.secondary ? <p className="pricing-card__price-secondary">{priceMeta.secondary}</p> : null}
+                              {priceMeta.secondary ? (
+                                <p className="pricing-card__price-secondary">
+                                  {priceMeta.secondary}
+                                </p>
+                              ) : null}
                               {priceMeta.note ? (
                                 <div className="pricing-card__price-note">
-                                  <p className="pricing-card__price-note-label">{priceMeta.noteLabel}</p>
+                                  <p className="pricing-card__price-note-label">
+                                    {priceMeta.noteLabel}
+                                  </p>
                                   <p className="pricing-card__price-note-value">{priceMeta.note}</p>
                                 </div>
                               ) : null}
@@ -444,29 +483,31 @@ function App() {
             </div>
           </section>
 
-                    <section className="section section-cta" id="final-cta">
+          <section className="section section-cta" id="final-cta">
             <div className="container">
               <GlassCard className="final-cta-band">
                 <div className="final-cta-copy">
-                  <p className="section-eyebrow">Финальный контур</p>
-                  <h2 className="section-title">Готовы работать в своем приложении?</h2>
+                  <p className="section-eyebrow">Следующий шаг</p>
+                  <h2 className="section-title">Покажем, как будет выглядеть ваше приложение в Spi.Ski</h2>
                   <p className="section-lead">
-                    Мы покажем, как будет выглядеть ваше собственное приложение, витрина событий и контур работы с накопленной аудиторией.
+                    Напишите нам — подключим Ваш аккаунт к тестовому кабинету и покажем, как Spi.Ski будет работать именно под ваш формат событий.
                   </p>
                 </div>
                 <div className="hero-actions final-cta-actions">
-                  <ActionLink href="https://t.me/spiski_support">Подключение</ActionLink>
-                  <ActionLink href="#hero" variant="secondary">Демо</ActionLink>
+                  <ActionLink href="https://t.me/spiski_support">Запросить доступ</ActionLink>
+                  <ActionLink href="#pricing" variant="secondary">
+                    Посмотреть тарифы
+                  </ActionLink>
                 </div>
               </GlassCard>
             </div>
           </section>
         </main>
 
-                        <footer className="site-footer">
+        <footer className="site-footer">
           <div className="container footer-grid">
             <p className="footer-copy">
-              Платформа для организаторов, собственной аудитории и премиальных запусков.
+              Платформа для организаторов событий, собственной аудитории и партнёрского роста.
             </p>
             <div className="footer-meta">
               <a
