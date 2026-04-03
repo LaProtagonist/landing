@@ -6,9 +6,9 @@ SERVER="${SERVER:-root@144.31.198.70}"
 SSH_OPTS="${SSH_OPTS:- -o ServerAliveInterval=30 -o ServerAliveCountMax=20}"
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REMOTE_DIR="/srv/static/land-2.spi.ski"
+REMOTE_DIR="/srv/static/promo.spi.ski"
 
-echo "Build land2 -> https://land2.spi.ski"
+echo "Build land2 -> https://promo.spi.ski"
 cd "$ROOT_DIR"
 npm run build
 
