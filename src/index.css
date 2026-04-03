@@ -169,6 +169,10 @@ img {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.05em;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  text-wrap: balance;
 }
 
 .section-title {
@@ -740,7 +744,6 @@ img {
   max-width: 62ch;
 }
 
-
 .final-cta-band .section-eyebrow {
   margin-bottom: 0;
 }
@@ -786,6 +789,7 @@ img {
   gap: 10px;
   color: var(--text-primary-color);
 }
+
 .footer-bottom {
   padding-top: 16px;
   padding-bottom: 8px;
@@ -794,6 +798,7 @@ img {
   color: var(--text-muted-color);
   font-size: 0.9rem;
 }
+
 .telegram-icon {
   width: 18px;
   height: 18px;
@@ -945,6 +950,19 @@ img {
   .pricing-card,
   .final-cta-band {
     min-width: 0;
+  }
+
+  .section-lead,
+  .hero-lead,
+  .pricing-copy,
+  .process-card p,
+  .feature-card-text,
+  .footer-copy,
+  .hero-story-text,
+  .pricing-list li,
+  .pricing-card__price-note-value,
+  .footer-meta,
+  .footer-telegram {
     overflow-wrap: anywhere;
   }
 
