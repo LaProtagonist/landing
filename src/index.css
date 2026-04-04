@@ -910,20 +910,69 @@ img {
     min-height: auto;
   }
 
+  .hero-grid,
+  .split-layout,
+  .split-layout-tight,
+  .final-cta-band,
+  .hero-story-grid,
+  .feature-grid-2x2,
+  .feature-grid-3,
+  .pricing-grid,
+  .phone-ui-row {
+    grid-template-columns: 1fr;
+  }
+
   .hero-grid {
     gap: 28px;
+    align-items: start;
+  }
+
+  .split-layout,
+  .split-layout-tight {
+    gap: 24px;
+  }
+
+  .section-header,
+  .hero-copy {
+    max-width: 100%;
+  }
+
+  .hero-title,
+  .section-title,
+  .pricing-card h3,
+  .process-card h3,
+  .feature-card-title,
+  .hero-story-title {
+    width: 100%;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+    text-wrap: balance;
   }
 
   .hero-title {
     font-size: clamp(2.4rem, 10vw, var(--font-size-secondary));
     line-height: 0.96;
-    max-width: min(100%, calc(var(--hero-title-max-width) * 1ch));
+    max-width: min(100%, 14ch);
   }
 
   .section-title {
     font-size: clamp(2rem, 8vw, calc(var(--font-size-secondary) * 0.6));
     line-height: 1.02;
-    max-width: min(100%, calc(var(--section-title-max-width) * 1ch));
+    max-width: min(100%, 18ch);
+  }
+
+  .section-eyebrow,
+  .pricing-card__price-label,
+  .pricing-card__price-note-label,
+  .process-step,
+  .brand-mark {
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
   }
 
   .section-eyebrow {
@@ -934,13 +983,6 @@ img {
   .hero-lead {
     max-width: 100%;
     font-size: clamp(calc(var(--font-size-primary) * 0.95), 4vw, calc(var(--font-size-primary) * 1.05));
-  }
-
-  .pricing-card h3,
-  .process-card h3,
-  .feature-card-title,
-  .hero-story-title {
-    max-width: min(100%, calc(var(--card-title-max-width) * 1ch));
   }
 
   .hero-copy,
@@ -966,11 +1008,26 @@ img {
     overflow-wrap: anywhere;
   }
 
-  .hero-story-grid,
-  .feature-grid-2x2,
-  .feature-grid-3,
-  .phone-ui-row {
-    grid-template-columns: 1fr;
+  .phone-stage {
+    width: 100%;
+  }
+
+  .phone-shell {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .phone-screen {
+    width: 100%;
+    max-width: 290px;
+    height: 520px;
+    min-height: 520px;
+    margin: 0 auto;
+  }
+
+  .phone-screen-image {
+    min-height: 520px;
   }
 
   .footer-grid {
@@ -988,27 +1045,18 @@ img {
   }
 
   .final-cta-band {
+    align-items: start;
     gap: 18px;
     padding: 18px;
   }
 
-  .final-cta-actions {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-  }
-
-  .phone-shell {
-    width: fit-content;
+  .final-cta-copy {
     max-width: 100%;
   }
 
-  .phone-screen {
-    width: min(100%, 290px);
-    height: 520px;
-    min-height: 520px;
-  }
-
-  .phone-screen-image {
-    min-height: 520px;
+  .final-cta-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 }
