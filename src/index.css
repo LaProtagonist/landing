@@ -885,15 +885,34 @@ img {
     grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
   }
 
-  .feature-grid-3,
+  .feature-grid-3 {
+    grid-template-columns: minmax(280px, 420px);
+    justify-content: center;
+    justify-items: center;
+  }
+
   .pricing-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+     grid-template-columns: repeat(2, minmax(280px, 420px));
+     justify-content: center;
+   }
+
+  .feature-grid-3:not(.pricing-grid) > .process-card {
+    width: 100%;
+    max-width: 420px;
+    justify-self: center;
+  }
+
+  .pricing-grid .pricing-card {
+     width: 100%;
+     max-width: 420px;
+    justify-self: center;
   }
 
   .pricing-grid .pricing-card:last-child {
     grid-column: 1 / -1;
+    max-width: 420px;
+    justify-self: center;
   }
-
   .final-cta-band {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 24px;
@@ -1128,5 +1147,50 @@ img {
     width: 100%;
     flex-wrap: wrap;
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 860px) and (min-width: 601px) and (orientation: portrait) {
+  :root {
+    --tablet-portrait-card-width: min(66vw, 520px);
+  }
+
+  .hero-story-grid,
+  .feature-grid-2x2,
+  .feature-grid-3,
+  .pricing-grid {
+    grid-template-columns: minmax(0, var(--tablet-portrait-card-width));
+    justify-content: center;
+    justify-items: center;
+  }
+
+  .feature-stack {
+    justify-items: center;
+  }
+
+  .hero-story-card,
+  .feature-card,
+  .process-card,
+  .pricing-card,
+  .settlement-panel {
+    width: var(--tablet-portrait-card-width);
+    max-width: var(--tablet-portrait-card-width);
+    justify-self: center;
+  }
+
+  .split-layout > .settlement-panel,
+  .split-layout-tight > .settlement-panel {
+    width: var(--tablet-portrait-card-width);
+    max-width: var(--tablet-portrait-card-width);
+    margin: 0 auto;
+  }
+
+  .pricing-grid {
+    grid-template-columns: minmax(0, var(--tablet-portrait-card-width));
+  }
+
+  .pricing-grid .pricing-card {
+    width: var(--tablet-portrait-card-width);
+    max-width: var(--tablet-portrait-card-width);
   }
 }
