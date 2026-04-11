@@ -1,4 +1,9 @@
-﻿export const LANDING_SETTINGS_KEY = 'spiski-landing-settings'
+import {
+  releaseBackgroundSphere as releaseBackgroundSphereConfig,
+  releaseUITheme as releaseUIThemeConfig,
+} from './landingReleaseConfig'
+
+export const LANDING_SETTINGS_KEY = 'spiski-landing-settings'
 const LEGACY_BACKGROUND_KEY = 'spiski-background-sphere'
 
 export const displayFontMap = {
@@ -63,53 +68,15 @@ export type UIThemeSettings = {
 }
 
 export const defaultUITheme: UIThemeSettings = {
-  glassAlpha: 0.12,
-  glassBlur: 24,
-  glassBorderAlpha: 0.2,
-  glassBorderAccent: '#d8ecff',
-  glassTintColor: '#0b1730',
-  cardRadius: 24,
-  cardShadowOpacity: 0.18,
-  buttonPrimaryBg: '#f3f8ff',
-  buttonPrimaryText: '#05111f',
-  buttonPrimaryBorder: '#d7ebff',
-  buttonPrimaryGlow: '#88bfff',
-  buttonSecondaryBg: '#0c1930',
-  buttonSecondaryText: '#eff6ff',
-  buttonSecondaryBorder: '#25426d',
-  buttonSecondaryGlow: '#4b7bff',
-  textPrimaryColor: '#d8e2f1',
-  textSecondaryColor: '#f5f9ff',
-  textMutedColor: '#90a4bf',
-  fontDisplay: 'Space Grotesk',
-  fontBody: 'Inter',
-  fontSizePrimary: 16,
-  fontSizeSecondary: 64,
-  heroTitleMaxWidth: 10,
-  sectionTitleMaxWidth: 12,
-  cardTitleMaxWidth: 16,
-  heroTopOffset: 136,
-  phoneImageScale: 1.1,
+  ...releaseUIThemeConfig,
 }
 
 export const releaseUITheme: UIThemeSettings = {
-  ...defaultUITheme,
+  ...releaseUIThemeConfig,
 }
 
 export const releaseBackgroundSphere: BackgroundSphereSettings = {
-  sphereScale: 3.2,
-  surfacePointSize: 0.03,
-  surfacePointCount: 1600,
-  rotationSpeed: 0.15,
-  rotationDirection: 'counterclockwise',
-  gradientColorA: '#4b7bff',
-  gradientColorB: '#8fd3ff',
-  gradientColorC: '#5cf2d6',
-  gradientFlowSpeed: 0.15,
-  logoScale: 1.4,
-  connectionRatio: 0.06,
-  connectionDepth: 3,
-  connectionGrowSpeed: 0.4,
+  ...releaseBackgroundSphereConfig,
 }
 
 type LandingSettings = {
@@ -266,6 +233,14 @@ export function getStoredBackgroundSettings() {
   return mergeBackgroundSphere(loadLandingSettings().backgroundSphere)
 }
 
+export function getReleaseUITheme() {
+  return mergeUITheme(releaseUITheme)
+}
+
+export function getReleaseBackgroundSettings() {
+  return mergeBackgroundSphere(releaseBackgroundSphere)
+}
+
 export function saveLandingSettingsPatch(patch: LandingSettings) {
   if (typeof window === 'undefined') {
     return
@@ -273,7 +248,10 @@ export function saveLandingSettingsPatch(patch: LandingSettings) {
 
   const current = loadLandingSettings()
   const next: LandingSettings = {
-    backgroundSphere: patch.backgroundSphere ?? current.backgroundSphere,
+    backgroundSphere: mergeBackgroundSphere({
+      ...current.backgroundSphere,
+      ...patch.backgroundSphere,
+    }),
     uiTheme: mergeUITheme({
       ...current.uiTheme,
       ...patch.uiTheme,
@@ -281,6 +259,14 @@ export function saveLandingSettingsPatch(patch: LandingSettings) {
   }
 
   window.localStorage.setItem(LANDING_SETTINGS_KEY, JSON.stringify(next))
+}
+
+export function serializeReleaseConfigSnippet(settings: LandingSettings) {
+  return [
+    'export const releaseUITheme = ' + JSON.stringify(mergeUITheme(settings.uiTheme), null, 2) + ' as const',
+    '',
+    'export const releaseBackgroundSphere = ' + JSON.stringify(mergeBackgroundSphere(settings.backgroundSphere), null, 2) + ' as const',
+  ].join('\n')
 }
 
 export function applyUIThemeToRoot(theme: UIThemeSettings) {
@@ -305,9 +291,16 @@ export function applyUIThemeToRoot(theme: UIThemeSettings) {
 
   root.style.setProperty('--glass-alpha', String(theme.glassAlpha))
   root.style.setProperty('--glass-blur', `${theme.glassBlur}px`)
+  root.style.setProperty('--glass-backdrop-filter', `blur(${theme.glassBlur}px) saturate(1)`)
+  root.style.setProperty('--glass-backdrop-filter-webkit', `blur(${theme.glassBlur}px)`)
   root.style.setProperty('--glass-radius', `${theme.cardRadius}px`)
   root.style.setProperty('--glass-surface', toRgba(theme.glassTintColor, theme.glassAlpha))
+  root.style.setProperty('--glass-surface-strong', toRgba(theme.glassTintColor, Math.min(0.45, theme.glassAlpha * 1.12)))
+  root.style.setProperty('--glass-surface-soft', toRgba(theme.glassTintColor, Math.max(0.02, theme.glassAlpha * 0.82)))
+  root.style.setProperty('--glass-surface-muted', toRgba(theme.glassTintColor, Math.max(0.02, theme.glassAlpha * 0.68)))
+  root.style.setProperty('--glass-surface-faint', toRgba(theme.glassTintColor, Math.max(0.02, theme.glassAlpha * 0.56)))
   root.style.setProperty('--glass-border', toRgba(theme.glassBorderAccent, theme.glassBorderAlpha))
+  root.style.setProperty('--glass-border-soft', toRgba(theme.glassBorderAccent, Math.max(0.02, theme.glassBorderAlpha * 0.72)))
   root.style.setProperty('--glass-accent-border', toRgba(theme.glassBorderAccent, Math.min(0.8, theme.glassBorderAlpha + 0.12)))
   root.style.setProperty('--glass-shadow', toRgba('#000814', theme.cardShadowOpacity))
 

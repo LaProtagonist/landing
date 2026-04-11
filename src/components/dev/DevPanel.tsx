@@ -1,11 +1,54 @@
-﻿import { button, Leva, useControls } from 'leva'
+import { button, Leva, useControls } from 'leva'
 import { useEffect, useMemo, useRef } from 'react'
+import { getDraftReleaseConfig, setDraftUITheme } from '../../lib/devReleaseState'
 import {
   applyUIThemeToRoot,
   getStoredUITheme,
   saveLandingSettingsPatch,
+  serializeReleaseConfigSnippet,
   type UIThemeSettings,
 } from '../../lib/uiTheme'
+
+async function saveReleaseConfig(releaseUITheme: UIThemeSettings) {
+  const { backgroundSphere: releaseBackgroundSphere } = getDraftReleaseConfig()
+
+  const response = await fetch('/__dev/save-release-config', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      releaseUITheme,
+      releaseBackgroundSphere,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to save release config')
+  }
+}
+
+async function copyReleaseConfigSnippet(releaseUITheme: UIThemeSettings) {
+  const { backgroundSphere } = getDraftReleaseConfig()
+  const snippet = serializeReleaseConfigSnippet({
+    uiTheme: releaseUITheme,
+    backgroundSphere,
+  })
+
+  await navigator.clipboard.writeText(snippet)
+  window.alert('Release config copied. Paste it into src/lib/landingReleaseConfig.ts')
+}
+
+async function persistThemeToReleaseConfig(releaseUITheme: UIThemeSettings, notifySuccess: boolean) {
+  try {
+    await saveReleaseConfig(releaseUITheme)
+    if (notifySuccess) {
+      window.alert('Release config saved to src/lib/landingReleaseConfig.ts')
+    }
+  } catch {
+    await copyReleaseConfigSnippet(releaseUITheme)
+  }
+}
 
 function DevThemeControlsPanel() {
   const storedTheme = useMemo(() => getStoredUITheme(), [])
@@ -55,7 +98,20 @@ function DevThemeControlsPanel() {
 
   useControls('UI Theme', {
     apply: button(() => {
-      saveLandingSettingsPatch({ uiTheme: themeRef.current })
+      const { uiTheme } = getDraftReleaseConfig()
+      saveLandingSettingsPatch({ uiTheme })
+      void persistThemeToReleaseConfig(uiTheme, false).catch((error) => {
+        const message = error instanceof Error ? error.message : 'Failed to save release config'
+        window.alert(message)
+      })
+    }),
+    saveToReleaseConfig: button(() => {
+      const { uiTheme } = getDraftReleaseConfig()
+      saveLandingSettingsPatch({ uiTheme })
+      void persistThemeToReleaseConfig(uiTheme, true).catch((error) => {
+        const message = error instanceof Error ? error.message : 'Failed to save release config'
+        window.alert(message)
+      })
     }),
   })
 
@@ -69,6 +125,7 @@ function DevThemeControlsPanel() {
   }
 
   themeRef.current = theme
+  setDraftUITheme(theme)
 
   useEffect(() => {
     applyUIThemeToRoot(theme)

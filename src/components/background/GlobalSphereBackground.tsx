@@ -1,8 +1,16 @@
 ﻿import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { button, useControls } from 'leva'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { getStoredBackgroundSettings, releaseBackgroundSphere, saveLandingSettingsPatch, type BackgroundSphereSettings } from '../../lib/uiTheme'
+import { getDraftReleaseConfig, setDraftBackgroundSphere } from '../../lib/devReleaseState'
+import {
+  getStoredBackgroundSettings,
+  getReleaseBackgroundSettings,
+  releaseBackgroundSphere,
+  saveLandingSettingsPatch,
+  serializeReleaseConfigSnippet,
+  type BackgroundSphereSettings,
+} from '../../lib/uiTheme'
 import { mulberry32 } from './connectionUtils'
 import { buildFibonacciSphere } from './sphereUtils'
 
@@ -14,6 +22,8 @@ const CONNECTION_RADIUS_EPS = 1.003
 const LOCAL_ROUTE_BIAS = 0.93
 const LOCAL_CANDIDATE_SAMPLES = 40
 const FAR_CANDIDATE_SAMPLES = 3
+const MOBILE_MAX_WIDTH = 860
+const TABLET_MAX_WIDTH = 1100
 
 type RoutePhase = 'growing' | 'holding' | 'shrinking' | 'cooldown'
 
@@ -28,6 +38,129 @@ type RouteState = {
   holdTimer: number
   cooldownDuration: number
   cooldownTimer: number
+}
+
+type ResponsiveSceneSettings = BackgroundSphereSettings & {
+  cameraZ: number
+  cameraFov: number
+}
+
+function resolveResponsiveBackgroundSettings(
+  base: BackgroundSphereSettings,
+  viewportWidth: number
+): ResponsiveSceneSettings {
+  if (viewportWidth <= MOBILE_MAX_WIDTH) {
+    return {
+      ...base,
+      sphereScale: base.sphereScale * 0.76,
+      surfacePointSize: base.surfacePointSize * 0.9,
+      surfacePointCount: Math.max(200, Math.round(base.surfacePointCount * 0.62)),
+      logoScale: base.logoScale * 0.8,
+      connectionRatio: Math.max(0, Math.min(0.25, base.connectionRatio * 0.74)),
+      cameraZ: 6.65,
+      cameraFov: 51,
+    }
+  }
+
+  if (viewportWidth <= TABLET_MAX_WIDTH) {
+    return {
+      ...base,
+      sphereScale: base.sphereScale * 0.88,
+      surfacePointSize: base.surfacePointSize * 0.95,
+      surfacePointCount: Math.max(200, Math.round(base.surfacePointCount * 0.82)),
+      logoScale: base.logoScale * 0.9,
+      connectionRatio: Math.max(0, Math.min(0.25, base.connectionRatio * 0.86)),
+      cameraZ: 6.2,
+      cameraFov: 47,
+    }
+  }
+
+  return {
+    ...base,
+    cameraZ: 6,
+    cameraFov: 45,
+  }
+}
+
+function useStableBackgroundViewport() {
+  const [viewport, setViewport] = useState(() => {
+    if (typeof window === 'undefined') {
+      return { width: 1280, height: 720 }
+    }
+
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    }
+  })
+
+  const maxMobileHeightRef = useRef(viewport.height)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined
+    }
+
+    const updateViewport = () => {
+      const width = window.innerWidth
+      const height = window.innerHeight
+      const isMobileWidth = width <= MOBILE_MAX_WIDTH
+
+      if (isMobileWidth) {
+        maxMobileHeightRef.current = Math.max(maxMobileHeightRef.current, height)
+      } else {
+        maxMobileHeightRef.current = height
+      }
+
+      setViewport({
+        width,
+        height: isMobileWidth ? maxMobileHeightRef.current : height,
+      })
+    }
+
+    updateViewport()
+    window.addEventListener('resize', updateViewport)
+    window.addEventListener('orientationchange', updateViewport)
+
+    return () => {
+      window.removeEventListener('resize', updateViewport)
+      window.removeEventListener('orientationchange', updateViewport)
+    }
+  }, [])
+
+  return viewport
+}
+
+async function saveBackgroundReleaseConfig(backgroundSphere: BackgroundSphereSettings) {
+  const { uiTheme } = getDraftReleaseConfig()
+  const payload = {
+    releaseUITheme: uiTheme,
+    releaseBackgroundSphere: backgroundSphere,
+  }
+
+  const response = await fetch('/__dev/save-release-config', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const snippet = serializeReleaseConfigSnippet({
+      uiTheme: payload.releaseUITheme,
+      backgroundSphere: payload.releaseBackgroundSphere,
+    })
+    await navigator.clipboard.writeText(snippet)
+    throw new Error('Failed to save release config to file. Config snippet copied to clipboard.')
+  }
+}
+
+async function persistBackgroundToReleaseConfig(backgroundSphere: BackgroundSphereSettings, notifySuccess: boolean) {
+  await saveBackgroundReleaseConfig(backgroundSphere)
+  if (notifySuccess) {
+    window.alert('Release config saved to src/lib/landingReleaseConfig.ts')
+  }
 }
 
 function createCircleTexture(size = 128) {
@@ -634,29 +767,74 @@ function BackgroundSphereScene({
   connectionDepth,
   connectionGrowSpeed,
 }: BackgroundSphereSettings) {
+  const viewport = useStableBackgroundViewport()
+  const viewportWidth = viewport.width
   const spriteTexture = useMemo(() => createCircleTexture(128), [])
+  const resolvedSettings = useMemo(
+    () =>
+      resolveResponsiveBackgroundSettings(
+        {
+          sphereScale,
+          surfacePointSize,
+          surfacePointCount,
+          rotationSpeed,
+          rotationDirection,
+          gradientColorA,
+          gradientColorB,
+          gradientColorC,
+          gradientFlowSpeed,
+          logoScale,
+          connectionRatio,
+          connectionDepth,
+          connectionGrowSpeed,
+        },
+        viewportWidth
+      ),
+    [
+      connectionDepth,
+      connectionGrowSpeed,
+      connectionRatio,
+      gradientColorA,
+      gradientColorB,
+      gradientColorC,
+      gradientFlowSpeed,
+      logoScale,
+      rotationDirection,
+      rotationSpeed,
+      sphereScale,
+      surfacePointCount,
+      surfacePointSize,
+      viewportWidth,
+    ]
+  )
 
   useEffect(() => () => spriteTexture?.dispose(), [spriteTexture])
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none">
-      <Canvas camera={{ position: [0, 0, 6], fov: 45 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
+    <div
+      className="fixed left-0 top-0 z-0 pointer-events-none overflow-hidden"
+      style={{ width: `${viewport.width}px`, height: `${viewport.height}px` }}
+    >
+      <Canvas
+        camera={{ position: [0, 0, resolvedSettings.cameraZ], fov: resolvedSettings.cameraFov }}
+        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+      >
         <RotatingSphere
-          scale={sphereScale}
-          pointSize={surfacePointSize}
-          pointCount={surfacePointCount}
-          rotationSpeed={rotationSpeed}
-          rotationDirection={rotationDirection}
-          gradientColorA={gradientColorA}
-          gradientColorB={gradientColorB}
-          gradientColorC={gradientColorC}
-          gradientFlowSpeed={gradientFlowSpeed}
+          scale={resolvedSettings.sphereScale}
+          pointSize={resolvedSettings.surfacePointSize}
+          pointCount={resolvedSettings.surfacePointCount}
+          rotationSpeed={resolvedSettings.rotationSpeed}
+          rotationDirection={resolvedSettings.rotationDirection}
+          gradientColorA={resolvedSettings.gradientColorA}
+          gradientColorB={resolvedSettings.gradientColorB}
+          gradientColorC={resolvedSettings.gradientColorC}
+          gradientFlowSpeed={resolvedSettings.gradientFlowSpeed}
           spriteTexture={spriteTexture}
-          connectionRatio={connectionRatio}
-          connectionDepth={connectionDepth}
-          connectionGrowSpeed={connectionGrowSpeed}
+          connectionRatio={resolvedSettings.connectionRatio}
+          connectionDepth={resolvedSettings.connectionDepth}
+          connectionGrowSpeed={resolvedSettings.connectionGrowSpeed}
         />
-        <LogoPlane scale={logoScale} sphereScale={sphereScale} />
+        <LogoPlane scale={resolvedSettings.logoScale} sphereScale={resolvedSettings.sphereScale} />
       </Canvas>
     </div>
   )
@@ -680,7 +858,21 @@ function GlobalSphereBackgroundDev() {
     connectionRatio: { value: stored.connectionRatio ?? releaseBackgroundSphere.connectionRatio, min: 0, max: 0.25, step: 0.01 },
     connectionDepth: { value: stored.connectionDepth ?? releaseBackgroundSphere.connectionDepth, options: [2, 3, 4, 5] },
     connectionGrowSpeed: { value: stored.connectionGrowSpeed ?? releaseBackgroundSphere.connectionGrowSpeed, min: 0.05, max: 2, step: 0.05 },
-    apply: button(() => saveLandingSettingsPatch({ backgroundSphere: controlsRef.current })),
+    apply: button(() => {
+      saveLandingSettingsPatch({ backgroundSphere: controlsRef.current })
+      void persistBackgroundToReleaseConfig(controlsRef.current, false).catch((error) => {
+        const message = error instanceof Error ? error.message : 'Failed to save release config'
+        window.alert(message)
+      })
+    }),
+    saveToReleaseConfig: button(() => {
+      saveLandingSettingsPatch({ backgroundSphere: controlsRef.current })
+      void persistBackgroundToReleaseConfig(controlsRef.current, true)
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : 'Failed to save release config'
+          window.alert(message)
+        })
+    }),
   })
 
   controlsRef.current = {
@@ -698,16 +890,16 @@ function GlobalSphereBackgroundDev() {
     connectionDepth: controls.connectionDepth,
     connectionGrowSpeed: controls.connectionGrowSpeed,
   }
+  setDraftBackgroundSphere(controlsRef.current)
 
   return <BackgroundSphereScene {...controlsRef.current} />
 }
 
 function GlobalSphereBackgroundProd() {
-  const settings = useMemo(() => getStoredBackgroundSettings(), [])
+  const settings = useMemo(() => getReleaseBackgroundSettings(), [])
   return <BackgroundSphereScene {...settings} />
 }
 
 export default function GlobalSphereBackground() {
   return import.meta.env.DEV ? <GlobalSphereBackgroundDev /> : <GlobalSphereBackgroundProd />
 }
-

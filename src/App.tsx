@@ -1,8 +1,14 @@
 ﻿import type { ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
+import type { CSSProperties } from 'react'
 import GlobalSphereBackground from './components/background/GlobalSphereBackground'
 import DevPanel from './components/dev/DevPanel'
-import { applyUIThemeToRoot, getStoredUITheme } from './lib/uiTheme'
+import {
+  applyUIThemeToRoot,
+  getReleaseUITheme,
+  getStoredUITheme,
+  type UIThemeSettings,
+} from './lib/uiTheme'
 import './index.css'
 
 const navItems = [
@@ -101,7 +107,8 @@ const pricingCards = [
     text: 'Для платных событий и команд, которым нужно своё приложение с продажами, аудиторией и партнёрской логикой.',
     pricePrimary: '15 000 ₽ / месяц',
     priceSecondary: '150 000 ₽ / год',
-    note: 'Специальные условия запуска: 9 000 ₽ / месяц · 90 000 ₽ / год',
+    noteLabel: 'Специальные условия запуска',
+    note: '9 000 ₽ / месяц · 90 000 ₽ / год',
     features: [
       'Всё из тарифа Community',
       'Брендированный интерфейс',
@@ -132,29 +139,6 @@ const pricingCards = [
     ],
   },
 ]
-
-const pricingMetaByName: Record<
-  string,
-  {
-    primary: string
-    secondary?: string
-    noteLabel?: string
-    note?: string
-  }
-> = {
-  Community: {
-    primary: 'Бесплатно',
-  },
-  Enterprise: {
-    primary: '15 000 ₽ / месяц',
-    secondary: '150 000 ₽ / год',
-    noteLabel: 'Специальные условия запуска',
-    note: '9 000 ₽ / месяц · 90 000 ₽ / год',
-  },
-  Entertainment: {
-    primary: 'Стоимость индивидуально',
-  },
-}
 
 type SectionHeaderProps = {
   eyebrow?: string
@@ -189,8 +173,68 @@ function ActionLink({
   )
 }
 
+const glassCardRuntimeStyle = {
+  backdropFilter: 'var(--glass-backdrop-filter)',
+  WebkitBackdropFilter: 'var(--glass-backdrop-filter-webkit)',
+}
+
+function parseHexColor(input: string) {
+  const hex = input.trim().replace('#', '')
+  if (hex.length !== 3 && hex.length !== 6) {
+    return null
+  }
+
+  const normalized = hex.length === 3
+    ? hex.split('').map((char) => char + char).join('')
+    : hex
+
+  const int = Number.parseInt(normalized, 16)
+  if (Number.isNaN(int)) {
+    return null
+  }
+
+  return {
+    r: (int >> 16) & 255,
+    g: (int >> 8) & 255,
+    b: int & 255,
+  }
+}
+
+function toRgba(color: string, alpha: number) {
+  const parsed = parseHexColor(color)
+  if (!parsed) {
+    return color
+  }
+
+  return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${alpha})`
+}
+
+function createGlassThemeVars(theme: UIThemeSettings): CSSProperties {
+  return {
+    '--glass-alpha': String(theme.glassAlpha),
+    '--glass-blur': `${theme.glassBlur}px`,
+    '--glass-backdrop-filter': `blur(${theme.glassBlur}px) saturate(1)`,
+    '--glass-backdrop-filter-webkit': `blur(${theme.glassBlur}px)`,
+    '--glass-radius': `${theme.cardRadius}px`,
+    '--glass-surface': toRgba(theme.glassTintColor, theme.glassAlpha),
+    '--glass-surface-strong': toRgba(theme.glassTintColor, Math.min(0.45, theme.glassAlpha * 1.12)),
+    '--glass-surface-soft': toRgba(theme.glassTintColor, Math.max(0.02, theme.glassAlpha * 0.82)),
+    '--glass-surface-muted': toRgba(theme.glassTintColor, Math.max(0.02, theme.glassAlpha * 0.68)),
+    '--glass-surface-faint': toRgba(theme.glassTintColor, Math.max(0.02, theme.glassAlpha * 0.56)),
+    '--glass-border': toRgba(theme.glassBorderAccent, theme.glassBorderAlpha),
+    '--glass-border-soft': toRgba(theme.glassBorderAccent, Math.max(0.02, theme.glassBorderAlpha * 0.72)),
+    '--glass-accent-border': toRgba(theme.glassBorderAccent, Math.min(0.8, theme.glassBorderAlpha + 0.12)),
+    '--glass-shadow': toRgba('#000814', theme.cardShadowOpacity),
+  } as CSSProperties
+}
+
 function GlassCard({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`glass-card ${className}`.trim()}>{children}</div>
+  return (
+    <div className={`glass-card ${className}`.trim()}>
+      <span className="glass-card-backdrop" style={glassCardRuntimeStyle} aria-hidden="true" />
+      {children}
+    </div>
+  )
 }
 
 function TelegramIcon() {
@@ -209,7 +253,7 @@ function TopNav() {
 
   return (
     <header className="site-nav-wrap">
-      <div className="container nav-shell glass-card glass-card-soft">
+      <GlassCard className="container nav-shell glass-card-soft">
         <div className="nav-top-row">
           <a className="brand-mark" href="#hero">
             Spi.Ski
@@ -240,7 +284,7 @@ function TopNav() {
             ))}
           </nav>
         </div>
-      </div>
+      </GlassCard>
     </header>
   )
 }
@@ -248,7 +292,7 @@ function TopNav() {
 function PhoneMockup() {
   return (
     <div className="phone-stage">
-      <div className="phone-shell glass-card glass-card-soft">
+      <GlassCard className="phone-shell glass-card-soft">
         <div className="phone-notch" />
         <div className="phone-screen">
           <img
@@ -258,18 +302,24 @@ function PhoneMockup() {
             loading="eager"
           />
         </div>
-      </div>
+      </GlassCard>
     </div>
   )
 }
 
 function App() {
-  useEffect(() => {
-    applyUIThemeToRoot(getStoredUITheme())
-  }, [])
+  const runtimeTheme = useMemo(
+    () => (import.meta.env.DEV ? getStoredUITheme() : getReleaseUITheme()),
+    []
+  )
+  const glassThemeVars = useMemo(() => createGlassThemeVars(runtimeTheme), [runtimeTheme])
+
+  useLayoutEffect(() => {
+    applyUIThemeToRoot(runtimeTheme)
+  }, [runtimeTheme])
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={glassThemeVars}>
       <GlobalSphereBackground />
       <div className="page-overlay" />
       <div className="site-layer page-text-outline">
@@ -417,8 +467,6 @@ function App() {
               />
               <div className="feature-grid feature-grid-3 pricing-grid">
                 {pricingCards.map((item) => {
-                  const priceMeta = pricingMetaByName[item.name as keyof typeof pricingMetaByName]
-
                   return (
                     <GlassCard
                       key={item.name}
@@ -439,37 +487,37 @@ function App() {
                             <>
                               <div className="pricing-card__price-base">
                                 <div className="pricing-card__price-label">БАЗОВЫЕ УСЛОВИЯ</div>
-                                {priceMeta.secondary ? (
+                                {item.priceSecondary ? (
                                   <div className="pricing-card__price-base-value pricing-card__price-base-value--striked">
-                                    {priceMeta.primary} · {priceMeta.secondary}
+                                    {item.pricePrimary} · {item.priceSecondary}
                                   </div>
                                 ) : null}
                               </div>
-                              {priceMeta.note ? (
+                              {item.note ? (
                                 <div className="pricing-card__price-note">
                                   <div className="pricing-card__price-note-label">
-                                    {priceMeta.noteLabel}
+                                    {item.noteLabel}
                                   </div>
                                   <div className="pricing-card__price-note-value">
-                                    {priceMeta.note}
+                                    {item.note}
                                   </div>
                                 </div>
                               ) : null}
                             </>
                           ) : (
                             <>
-                              <p className="pricing-card__price-main">{priceMeta.primary}</p>
-                              {priceMeta.secondary ? (
+                              <p className="pricing-card__price-main">{item.price}</p>
+                              {item.priceSecondary ? (
                                 <p className="pricing-card__price-secondary">
-                                  {priceMeta.secondary}
+                                  {item.priceSecondary}
                                 </p>
                               ) : null}
-                              {priceMeta.note ? (
+                              {item.note ? (
                                 <div className="pricing-card__price-note">
                                   <p className="pricing-card__price-note-label">
-                                    {priceMeta.noteLabel}
+                                    {item.noteLabel}
                                   </p>
-                                  <p className="pricing-card__price-note-value">{priceMeta.note}</p>
+                                  <p className="pricing-card__price-note-value">{item.note}</p>
                                 </div>
                               ) : null}
                             </>
